@@ -6,34 +6,42 @@ spring:
     name: api-gateway
   cloud:
     gateway:
-      globalcors:
-        cors-configurations:
-          '[/**]':
-            allowedOrigins: 
-              - "http://localhost:3000"
-              - "http://192.168.0.198:3000"
-            allowedMethods: "*"
-            allowedHeaders: "*"
-            allowCredentials: true
-      routes:
-        - id: ms-pedido-ws
-          uri: ws://localhost:8082
-          predicates:
-            - Path=/pedidoMs/ws-notifications/**
-            - Header=Upgrade, websocket
-        - id: ms-usuarios
-          uri: http://localhost:8080
-          predicates:
-            - Path=/usuariosMs/**
-        - id: ms-catalogo
-          uri: http://localhost:8081
-          predicates:
-            - Path=/catalogoMs/**
-        - id: ms-pedido
-          uri: http://localhost:8082
-          predicates:
-            - Path=/pedidoMs/**
-        - id: ms-pago
-          uri: http://localhost:8083
-          predicates:
-            - Path=/pagoMs/**
+      server:
+        webflux:
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowedOrigins:
+                  - "http://localhost:3000"
+                  - "http://192.168.0.198:3000"
+                allowedMethods: "*"
+                allowedHeaders: "*"
+                allowCredentials: true
+          routes:
+            - id: ms-pedido-ws
+              uri: lb:ws://ms-pedido
+              predicates:
+                - Path=/pedidoMs/ws-notifications/**
+                - Header=Upgrade, websocket
+            - id: ms-usuarios
+              uri: lb://ms-usuarios
+              predicates:
+                - Path=/usuariosMs/**
+            - id: ms-catalogo
+              uri: lb://ms-catalogo
+              predicates:
+                - Path=/catalogoMs/**
+            - id: ms-pedido
+              uri: lb://ms-pedido
+              predicates:
+                - Path=/pedidoMs/**
+            - id: ms-pago
+              uri: lb://ms-pago
+              predicates:
+                - Path=/pagoMs/**
+
+# Configuración para que el Gateway se conecte a Eureka
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/

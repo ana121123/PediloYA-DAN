@@ -2,11 +2,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+	<!-- ms-pedido/pom.xml -->
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>4.0.1</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath/>
 	</parent>
 	<groupId>com.seminario</groupId>
 	<artifactId>ms-pedido</artifactId>
@@ -28,6 +29,7 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+		<spring-cloud.version>2025.1.2</spring-cloud.version>
 	</properties>
 	<dependencies>
 		<!-- WebFlux para llamadas reactivas/web client -->
@@ -35,11 +37,17 @@
 		    <groupId>org.springframework.boot</groupId>
 		    <artifactId>spring-boot-starter-webflux</artifactId>
 		</dependency>
-		<!-- Resilience4j para Circuit Breaker -->
+
+		<!-- Cliente Eureka: para que este MS se registre en el discovery server -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+		</dependency>
+
+		<!-- Resilience4j para Circuit Breaker (versiones gestionadas por el BOM de Spring Cloud) -->
 		<dependency>
 			<groupId>io.github.resilience4j</groupId>
 			<artifactId>resilience4j-spring-boot3</artifactId>
-			<version>2.1.0</version>
 		</dependency>
 		
 		<!-- Actuator (REQUERIDO para tracing) -->
@@ -54,7 +62,7 @@
 			<artifactId>micrometer-tracing-bridge-brave</artifactId>
 		</dependency>
     
-    <!-- OPCIONAL: Si quieres ver los traces en Zipkin/Jaeger -->
+    	<!-- OPCIONAL: Si quieres ver los traces en Zipkin/Jaeger -->
 		<dependency>
 			<groupId>io.zipkin.reporter2</groupId>
 			<artifactId>zipkin-reporter-brave</artifactId>
@@ -63,7 +71,6 @@
 		<dependency>
 			<groupId>io.github.resilience4j</groupId>
 			<artifactId>resilience4j-circuitbreaker</artifactId>
-			<version>2.1.0</version>
 		</dependency>
 		<!-- swagger -->
 		<dependency>
@@ -80,10 +87,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-webmvc</artifactId>
-		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>	
@@ -114,7 +117,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-webmvc-test</artifactId>
+			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -130,6 +133,18 @@
 			<artifactId>spring-boot-starter-websocket</artifactId>
 		</dependency>
 	</dependencies>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>${spring-cloud.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<build>
 		<plugins>

@@ -220,6 +220,11 @@ springdoc:
   packages-to-scan: com.seminario.ms_pedido.controller
   show-actuator: true
 
+# ===== EUREKA / SERVICE DISCOVERY =====
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
 # ===== LOGGING CON TRACE IDs =====
 logging:
   level:
