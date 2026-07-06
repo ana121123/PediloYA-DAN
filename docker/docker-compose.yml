@@ -1,12 +1,102 @@
 services:
-# --- BASE DE DATOS USUARIOS (SQL) ---
+  # --- EUREKA (debe levantar primero) ---
+  eureka-server:
+    build: ./eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - app-network
+
+  # --- API GATEWAY ---
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+    depends_on:
+      - eureka-server
+    networks:
+      - app-network
+
+  # --- MS USUARIOS ---
+  ms-usuarios:
+    build: ./ms-usuarios
+    container_name: ms-usuarios
+    ports:
+      - "8081:8080"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://usuario-db:5432/usuarios_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=admin
+    depends_on:
+      - eureka-server
+      - usuario-db
+    networks:
+      - app-network
+
+  # --- MS CATALOGO ---
+  ms-catalogo:
+    build: ./ms-catalogo
+    container_name: ms-catalogo
+    ports:
+      - "8082:8080"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_DATA_MONGODB_URI=mongodb://catalogo-db:27017/catalogo_db
+    depends_on:
+      - eureka-server
+      - catalogo-db
+    networks:
+      - app-network
+
+  # --- MS PEDIDO (usa postgres + mongo) ---
+  ms-pedido:
+    build: ./ms-pedido
+    container_name: ms-pedido
+    ports:
+      - "8083:8080"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://pedido-db:5432/pedidos_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=admin
+      - SPRING_DATA_MONGODB_URI=mongodb://pedido-mongo-db:27017/pedido_db
+    depends_on:
+      - eureka-server
+      - pedido-db
+      - pedido-mongo-db
+    networks:
+      - app-network
+
+  # --- MS PAGO ---
+  ms-pago:
+    build: ./ms-pago
+    container_name: ms-pago
+    ports:
+      - "8084:8080"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://pago-db:5432/pago_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=admin
+    depends_on:
+      - eureka-server
+      - pago-db
+    networks:
+      - app-network
+
+  # --- BASE DE DATOS USUARIOS (SQL) ---
   usuario-db:
     image: postgres:15-alpine
     container_name: usuario-db
     ports:
-      - "5431:5432" 
+      - "5431:5432"
     environment:
-      - POSTGRES_DB=usuarios_db      # La BD se crea sola con este nombre
+      - POSTGRES_DB=usuarios_db # La BD se crea sola con este nombre
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=admin
     volumes:
@@ -14,25 +104,25 @@ services:
     networks:
       - app-network
 
-# --- BASE DE DATOS CATÁLOGO (NoSQL) ---
+  # --- BASE DE DATOS CATÁLOGO (NoSQL) ---
   catalogo-db:
     image: mongo:latest
     container_name: catalogo-db
     ports:
-      - "27017:27017" 
+      - "27017:27017"
     volumes:
-      - ./docker/data/catalogo:/data/db 
+      - ./docker/data/catalogo:/data/db
     networks:
       - app-network
 
-# --- BASE DE DATOS PEDIDOS (SQL) ---
+  # --- BASE DE DATOS PEDIDOS (SQL) ---
   pedido-db:
     image: postgres:15-alpine
     container_name: pedido-db
     ports:
       - "5433:5432"
     environment:
-      - POSTGRES_DB=pedidos_db      # La BD se crea sola con este nombre
+      - POSTGRES_DB=pedidos_db # La BD se crea sola con este nombre
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=admin
     volumes:
@@ -40,25 +130,25 @@ services:
     networks:
       - app-network
 
-# --- BASE DE DATOS MS-PEDIDO (NoSQL) ---
+  # --- BASE DE DATOS MS-PEDIDO (NoSQL) ---
   pedido-mongo-db:
     image: mongo:latest
     container_name: pedido-mongo-db
     ports:
-      - "27018:27017" 
+      - "27018:27017"
     volumes:
-      - ./docker/data/ms-pedido:/data/db 
+      - ./docker/data/ms-pedido:/data/db
     networks:
       - app-network
 
-# --- BASE DE DATOS PAGO (SQL) ---
+  # --- BASE DE DATOS PAGO (SQL) ---
   pago-db:
     image: postgres:15-alpine
     container_name: pago-db
     ports:
-      - "5434:5432" 
+      - "5434:5432"
     environment:
-      - POSTGRES_DB=pago_db      
+      - POSTGRES_DB=pago_db
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=admin
     volumes:
