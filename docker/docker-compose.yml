@@ -13,7 +13,7 @@ services:
     build: ../backend/api-gateway
     container_name: api-gateway
     ports:
-      - "8080:8080"
+      - "8090:8090"
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
     depends_on:
@@ -26,7 +26,7 @@ services:
     build: ../backend/ms-usuarios
     container_name: ms-usuarios
     ports:
-      - "8081:8080"
+      - "8080:8080"
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
       - SPRING_DATASOURCE_URL=jdbc:postgresql://usuario-db:5432/usuarios_db
@@ -43,7 +43,7 @@ services:
     build: ../backend/ms-catalogo
     container_name: ms-catalogo
     ports:
-      - "8082:8080"
+      - "8081:8080"
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
       - SPRING_DATA_MONGODB_URI=mongodb://catalogo-db:27017/catalogo_db
@@ -58,7 +58,7 @@ services:
     build: ../backend/ms-pedido
     container_name: ms-pedido
     ports:
-      - "8083:8080"
+      - "8082:8080"
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
       - SPRING_DATASOURCE_URL=jdbc:postgresql://pedido-db:5432/pedidos_db
@@ -77,7 +77,7 @@ services:
     build: ../backend/ms-pago
     container_name: ms-pago
     ports:
-      - "8084:8080"
+      - "8083:8080"
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
       - SPRING_DATASOURCE_URL=jdbc:postgresql://pago-db:5432/pago_db
@@ -153,6 +153,29 @@ services:
       - POSTGRES_PASSWORD=admin
     volumes:
       - ./docker/data/pago:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  # --- PROMETHEUS ---
+  prometheus-server:
+    build: ../backend/prometheus-server
+    container_name: prometheus-server
+    ports:
+      - "9090:9090"
+    depends_on:
+      - eureka-server
+    networks:
+      - app-network
+
+  # --- GRAFANA ---
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../backend/grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus-server
     networks:
       - app-network
 

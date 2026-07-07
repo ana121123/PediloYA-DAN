@@ -6,28 +6,28 @@
 spring:
   application:
     name: ms-pedido
-  
+
   # ===== VIRTUAL THREADS (NUEVO EN SPRING BOOT 4) =====
   threads:
     virtual:
       enabled: true
-  
+
   # ===== BASE DE DATOS POSTGRESQL =====
   datasource:
     url: jdbc:postgresql://localhost:5433/pedidos_db
     username: postgres
-    password: ${DB_PASSWORD:admin}  # Usa variable de entorno en producción
+    password: ${DB_PASSWORD:admin} # Usa variable de entorno en producción
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
       minimum-idle: 5
       connection-timeout: 20000
-  
+
   # ===== JPA / HIBERNATE =====
   jpa:
     hibernate:
-      ddl-auto: update  # En producción usa 'validate' o Flyway/Liquibase
-    show-sql: false  # Cambia a false en producción
+      ddl-auto: update # En producción usa 'validate' o Flyway/Liquibase
+    show-sql: false # Cambia a false en producción
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -37,12 +37,12 @@ spring:
           batch_size: 20
         order_inserts: true
         order_updates: true
-  
+
   # ===== MONGODB PARA CARRITO Y NOTIFICACIONES =====
   mongodb:
     uri: mongodb://localhost:27018/pedido-mongo-db
     auto-index-creation: true
-  
+
   # ===== CACHE CON CAFFEINE =====
   cache:
     type: caffeine
@@ -54,7 +54,7 @@ spring:
     error:
       include-message: always
       include-binding-errors: always
-      include-stacktrace: on_param  # Solo muestra stacktrace si ?trace=true
+      include-stacktrace: on_param # Solo muestra stacktrace si ?trace=true
       include-exception: false
 
 # ===== SERVIDOR =====
@@ -65,7 +65,6 @@ server:
   compression:
     enabled: true
     mime-types: application/json,application/xml,text/html,text/xml,text/plain
-  
 
 # ===== MICROSERVICIOS EXTERNOS =====
 usuarios:
@@ -84,7 +83,6 @@ jwt:
 
 # ===== RESILIENCE4J =====
 resilience4j:
-  
   # Circuit Breaker para servicios externos
   circuitbreaker:
     configs:
@@ -99,7 +97,7 @@ resilience4j:
         permittedNumberOfCallsInHalfOpenState: 3
         automaticTransitionFromOpenToHalfOpenEnabled: true
         registerHealthIndicator: true
-        
+
         # Excepciones que cuentan como fallos
         recordExceptions:
           - org.springframework.web.client.HttpServerErrorException
@@ -107,7 +105,7 @@ resilience4j:
           - java.net.ConnectException
           - java.net.SocketTimeoutException
           - java.util.concurrent.TimeoutException
-        
+
         # Excepciones que NO cuentan como fallos (errores de cliente)
         ignoreExceptions:
           - org.springframework.web.client.HttpClientErrorException.BadRequest
@@ -115,12 +113,12 @@ resilience4j:
           - org.springframework.web.client.HttpClientErrorException.Forbidden
           - org.springframework.web.client.HttpClientErrorException.NotFound
           - com.seminario.ms_pedido.exception.ProductoNoEncontradoException
-    
+
     instances:
       # Circuit Breaker para MS-Catálogo
       catalogo:
         baseConfig: default
-      
+
       # Circuit Breaker para MS-Usuarios
       usuarios:
         baseConfig: default
@@ -132,36 +130,36 @@ management:
       exposure:
         include: health,info,metrics,prometheus,circuitbreakers,circuitbreakerevents,loggers
       base-path: /actuator
-  
+
   endpoint:
     health:
       show-details: when-authorized
       probes:
         enabled: true
-    
+
     circuitbreakers:
       enabled: true
-    
+
     circuitbreakerevents:
       enabled: true
-  
+
   health:
     circuitbreakers:
       enabled: true
-    
+
     livenessstate:
       enabled: true
-    
+
     readinessstate:
       enabled: true
-    
+
     # Health checks para bases de datos
     db:
       enabled: true
-    
+
     mongodb:
       enabled: true
-  
+
   info:
     env:
       enabled: true
@@ -169,33 +167,32 @@ management:
       enabled: true
     os:
       enabled: true
-  
+
   # ===== MÉTRICAS =====
   metrics:
     distribution:
       percentiles-histogram:
         http.server.requests: true
         http.client.requests: true
-    
+
     tags:
       application: ${spring.application.name}
       environment: ${ENVIRONMENT:dev}
-    
-    
+
   prometheus:
     export:
       enabled: true
-  
+
   # ===== TRACING DISTRIBUIDO HABILITADO =====
   tracing:
     enabled: true
     sampling:
-      probability: 1.0  # 100% en dev, 0.1 (10%) en producción
-    
+      probability: 1.0 # 100% en dev, 0.1 (10%) en producción
+
     # Propaga trace context a través de requests HTTP
     propagation:
-      type: W3C  # W3C Trace Context (estándar)
-  
+      type: W3C # W3C Trace Context (estándar)
+
   # ===== ZIPKIN (OPCIONAL - Para visualizar traces) =====
   # Descomenta si quieres ver los traces en Zipkin
   # Primero inicia Zipkin: docker run -d -p 9411:9411 openzipkin/zipkin
@@ -213,10 +210,10 @@ springdoc:
     show-extensions: true
     oauth:
       use-pkce-with-authorization-code-grant: true
-  
+
   api-docs:
     path: /api-docs
-  
+
   packages-to-scan: com.seminario.ms_pedido.controller
   show-actuator: true
 
@@ -227,7 +224,7 @@ eureka:
     instance-id: ${spring.cloud.client.ip-address}:${spring.application.name}:${server.port}
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
 # ===== LOGGING CON TRACE IDs =====
 logging:
   level:
@@ -239,7 +236,7 @@ logging:
     io.github.resilience4j: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-  
+
   # ✅ PATTERN CON TRACE IDs HABILITADO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [${spring.application.name:},%X{traceId:-},%X{spanId:-}] %logger{36} - %msg%n"
@@ -253,7 +250,7 @@ spring:
 
   web:
     error:
-      include-stacktrace: always  # Muestra stacktrace completo en dev
+      include-stacktrace: always # Muestra stacktrace completo en dev
 logging:
   level:
     root: DEBUG
@@ -263,7 +260,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: "*"  # Expone TODOS los endpoints en dev
+        include: "*" # Expone TODOS los endpoints en dev
 
 ---
 # ===== PERFIL DE PRODUCCIÓN =====
@@ -275,7 +272,7 @@ spring:
   jpa:
     show-sql: false
     hibernate:
-      ddl-auto: validate  # NO modifica la DB en producción
+      ddl-auto: validate # NO modifica la DB en producción
 
   web:
     error:
@@ -285,7 +282,7 @@ logging:
   level:
     root: WARN
     com.seminario.ms_pedido: INFO
-  
+
   # En producción, logs sin trace IDs (más limpio)
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{36} - %msg%n"
@@ -298,5 +295,4 @@ management:
 
   tracing:
     sampling:
-      probability: 0.1  # Solo 10% de traces en producción
-
+      probability: 0.1 # Solo 10% de traces en producción
