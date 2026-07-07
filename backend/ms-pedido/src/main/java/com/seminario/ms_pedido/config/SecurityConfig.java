@@ -34,7 +34,9 @@ public class SecurityConfig {
                 .requestMatchers("/pedidos/*/confirmar-pago").permitAll()
                 .requestMatchers("/ws-notifications", "/ws-notifications/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/index.html", "/api-docs/**", "/api-docs/swagger-config").permitAll()
-                .anyRequest().authenticated() 
+                .requestMatchers("/webjars/**", "/error").permitAll()                    // <-- falta
+                .requestMatchers("/actuator/health", "/actuator/info").permitAll()        // <-- falta
+                .anyRequest().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
 

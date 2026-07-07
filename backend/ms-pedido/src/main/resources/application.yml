@@ -222,6 +222,9 @@ springdoc:
 
 # ===== EUREKA / SERVICE DISCOVERY =====
 eureka:
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.cloud.client.ip-address}:${spring.application.name}:${server.port}
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
@@ -296,3 +299,4 @@ management:
   tracing:
     sampling:
       probability: 0.1  # Solo 10% de traces en producción
+

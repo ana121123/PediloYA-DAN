@@ -1,12 +1,12 @@
 package com.seminario.ms_pedido.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.messaging.simp.config.ChannelRegistration;
+import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @Configuration
 @EnableWebSocketMessageBroker 
@@ -36,7 +36,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 "http://127.0.0.1:*",
                 "http://192.168.*.*:*",
                 "http://10.*.*.*:*",
-                "http://172.16.*.*:*"
+                "http://172.1[6-9].*.*:*",
+                "http://172.2[0-9].*.*:*",
+                "http://172.3[0-1].*.*:*"  
             )
                 .withSockJS(); 
     }
