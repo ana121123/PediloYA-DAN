@@ -40,8 +40,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class HttpClientsConfig {
 
-    @Value("${usuario.ms.url:http://localhost:8080}")
-    private String usuarioBaseUrl;
+    @Value("${usuarios.ms.url:http://localhost:8080}")
+    private String usuariosBaseUrl;
 
     /**
      * HttpClient moderno de Java 21 con soporte para HTTP/2 y Virtual Threads.
@@ -134,10 +134,10 @@ public class HttpClientsConfig {
             JdkClientHttpRequestFactory requestFactory,
             ClientHttpRequestInterceptor jwtTokenInterceptor) {
         
-        log.info("Configurando RestClient para MS-Usuario: {}", usuarioBaseUrl);
+        log.info("Configurando RestClient para MS-Usuario: {}", usuariosBaseUrl);
         
         return RestClient.builder()
-            .baseUrl(usuarioBaseUrl)
+            .baseUrl(usuariosBaseUrl)
             .requestFactory(requestFactory)
             .requestInterceptor(jwtTokenInterceptor)
             .defaultHeader(HttpHeaders.CONTENT_TYPE, "application/json")

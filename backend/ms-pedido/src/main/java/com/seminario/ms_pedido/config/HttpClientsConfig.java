@@ -44,7 +44,7 @@ public class HttpClientsConfig {
     @Value("${catalogo.ms.url:http://localhost:8081}")
     private String catalogoBaseUrl;
 
-    @Value("${usuario.ms.url:http://localhost:8080}")
+    @Value("${usuarios.ms.url:http://localhost:8080}")
     private String usuarioBaseUrl;
 
     /**

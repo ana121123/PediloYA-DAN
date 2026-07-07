@@ -40,7 +40,7 @@ spring:
   
   # ===== MONGODB PARA CARRITO Y NOTIFICACIONES =====
   mongodb:
-    uri: mongodb://localhost:27018/pedido-mongo-db
+    uri: ${SPRING_DATA_MONGODB_URI:mongodb://localhost:27018/pedido-mongo-db}
     auto-index-creation: true
   
   # ===== CACHE CON CAFFEINE =====
@@ -227,7 +227,7 @@ eureka:
     instance-id: ${spring.cloud.client.ip-address}:${spring.application.name}:${server.port}
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
 # ===== LOGGING CON TRACE IDs =====
 logging:
   level:

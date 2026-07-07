@@ -5,89 +5,141 @@ services:
     container_name: eureka-server
     ports:
       - "8761:8761"
+    environment:
+      - EUREKA_HOST=eureka-server
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8761/ >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   # --- API GATEWAY ---
   api-gateway:
     build: ../backend/api-gateway
     container_name: api-gateway
     ports:
-      - "8080:8080"
+      - "8090:8090"
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
-    depends_on:
-      - eureka-server
     networks:
       - app-network
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "ps | grep 'java -jar app.jar' | grep -v grep"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   # --- MS USUARIOS ---
   ms-usuarios:
     build: ../backend/ms-usuarios
     container_name: ms-usuarios
     ports:
-      - "8081:8080"
+      - "8080:8080"
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
       - SPRING_DATASOURCE_URL=jdbc:postgresql://usuario-db:5432/usuarios_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=admin
+      - CATALOGO_MS_URL=http://ms-catalogo:8081
+      - PEDIDO_MS_URL=http://ms-pedido:8082
     depends_on:
-      - eureka-server
-      - usuario-db
+      eureka-server:
+        condition: service_healthy
+      usuario-db:
+        condition: service_healthy
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/usuariosMs/swagger-ui.html >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   # --- MS CATALOGO ---
   ms-catalogo:
     build: ../backend/ms-catalogo
     container_name: ms-catalogo
     ports:
-      - "8082:8080"
+      - "8081:8081"
     environment:
+      - SPRING_PROFILES_ACTIVE=docker
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
       - SPRING_DATA_MONGODB_URI=mongodb://catalogo-db:27017/catalogo_db
+      - USUARIOS_MS_URL=http://ms-usuarios:8080
+      - PEDIDO_MS_URL=http://ms-pedido:8082
     depends_on:
-      - eureka-server
-      - catalogo-db
+      eureka-server:
+        condition: service_healthy
+      catalogo-db:
+        condition: service_healthy
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/catalogoMs/swagger-ui.html >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   # --- MS PEDIDO (usa postgres + mongo) ---
   ms-pedido:
     build: ../backend/ms-pedido
     container_name: ms-pedido
     ports:
-      - "8083:8080"
+      - "8082:8082"
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
       - SPRING_DATASOURCE_URL=jdbc:postgresql://pedido-db:5432/pedidos_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=admin
       - SPRING_DATA_MONGODB_URI=mongodb://pedido-mongo-db:27017/pedido_db
+      - USUARIOS_MS_URL=http://ms-usuarios:8080
+      - CATALOGO_MS_URL=http://ms-catalogo:8081
     depends_on:
-      - eureka-server
-      - pedido-db
-      - pedido-mongo-db
+      eureka-server:
+        condition: service_healthy
+      pedido-db:
+        condition: service_healthy
+      pedido-mongo-db:
+        condition: service_healthy
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/pedidoMs/swagger-ui.html >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   # --- MS PAGO ---
   ms-pago:
     build: ../backend/ms-pago
     container_name: ms-pago
     ports:
-      - "8084:8080"
+      - "8083:8083"
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
       - SPRING_DATASOURCE_URL=jdbc:postgresql://pago-db:5432/pago_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=admin
+      - USUARIOS_MS_URL=http://ms-usuarios:8080
+      - CATALOGO_MS_URL=http://ms-catalogo:8081
+      - PEDIDO_MS_URL=http://ms-pedido:8082
     depends_on:
-      - eureka-server
-      - pago-db
+      eureka-server:
+        condition: service_healthy
+      pago-db:
+        condition: service_healthy
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8083/pagoMs/swagger-ui.html >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   # --- BASE DE DATOS USUARIOS (SQL) ---
   usuario-db:
@@ -103,6 +155,11 @@ services:
       - ./docker/data/usuarios:/var/lib/postgresql/data
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d usuarios_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   # --- BASE DE DATOS CATÁLOGO (NoSQL) ---
   catalogo-db:
@@ -114,6 +171,12 @@ services:
       - ./docker/data/catalogo:/data/db
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval \"db.adminCommand('ping')\" localhost:27017/catalogo_db >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
 
   # --- BASE DE DATOS PEDIDOS (SQL) ---
   pedido-db:
@@ -129,6 +192,11 @@ services:
       - ./docker/data/pedidos:/var/lib/postgresql/data
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d pedidos_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   # --- BASE DE DATOS MS-PEDIDO (NoSQL) ---
   pedido-mongo-db:
@@ -140,6 +208,12 @@ services:
       - ./docker/data/ms-pedido:/data/db
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval \"db.adminCommand('ping')\" localhost:27017/pedido_db >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
 
   # --- BASE DE DATOS PAGO (SQL) ---
   pago-db:
@@ -155,6 +229,11 @@ services:
       - ./docker/data/pago:/var/lib/postgresql/data
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d pago_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 networks:
   app-network:
