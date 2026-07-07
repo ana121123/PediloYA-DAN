@@ -40,7 +40,7 @@ spring:
 
   # ===== MONGODB PARA CARRITO Y NOTIFICACIONES =====
   mongodb:
-    uri: mongodb://localhost:27018/pedido-mongo-db
+    uri: ${SPRING_DATA_MONGODB_URI:mongodb://localhost:27018/pedido-mongo-db}
     auto-index-creation: true
 
   # ===== CACHE CON CAFFEINE =====
