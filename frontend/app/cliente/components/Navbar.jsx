@@ -435,7 +435,11 @@ export default function Navbar({ showSearchBar = false, profile, onAddressUpdate
         <div className={styles.iconWrapper} ref={userRef}>
           <button className={styles.userBtn} onClick={() => { setUserOpen(!userOpen); setNotifOpen(false); }}>
             <div className={styles.avatar}>
+              {profile?.foto ? (
+                <img src={profile.foto} alt="Foto de perfil" className={styles.avatar} />
+              ) : (
               <Image src="/perfil.png" alt="Foto de perfil" width={35} height={45} />
+              )}
             </div>
             <span className={styles.userName}>{profile?.nombre}</span>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -447,7 +451,11 @@ export default function Navbar({ showSearchBar = false, profile, onAddressUpdate
             <div className={styles.popover}>
               <div className={styles.userMenuHeader}>
                 <div className={styles.avatar}>
+                  {profile?.foto ? (
+                    <img src={profile.foto} alt="Foto de perfil" className={styles.avatar} />
+                  ) : (
                   <Image src="/perfil.png" alt="Foto de perfil" width={35} height={45} />
+                  )}
                 </div>
                 <span>{profile ? `${profile.nombre} ${profile.apellido}` : "Cargando..."}</span>
               </div>
@@ -459,11 +467,10 @@ export default function Navbar({ showSearchBar = false, profile, onAddressUpdate
                   </Link>
                 </li>
                 <li>
-                  <div className={styles.disabledLinkContent}>
+                  <Link href="/cliente/perfil" onClick={() => setUserOpen(false)}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
                     Mi perfil
-                    <span className={styles.comingSoon}>Próximamente</span>
-                  </div>
+                  </Link>
                 </li>
                 <li>
                   <Link href="/cliente/pedidos" onClick={() => setUserOpen(false)}>
