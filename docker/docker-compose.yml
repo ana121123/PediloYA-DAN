@@ -250,7 +250,7 @@ services:
   grafana:
     image: grafana/grafana
     ports:
-      - "3000:3000"
+      - "3001:3000"
     volumes:
       - ../backend/grafana/provisioning:/etc/grafana/provisioning
     depends_on:
