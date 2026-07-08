@@ -2,12 +2,71 @@ global:
   scrape_interval: 15s
 
 scrape_configs:
-  - job_name: "microservicios-eureka"
+  - job_name: "api-gateway"
     metrics_path: "/actuator/prometheus"
     eureka_sd_configs:
       - server: "http://eureka-server:8761/eureka"
         refresh_interval: 30s
     relabel_configs:
+      - source_labels: [__meta_eureka_app_name]
+        regex: "API-GATEWAY"
+        action: keep
+      - source_labels: [__meta_eureka_app_name]
+        target_label: application
+      - source_labels: [__meta_eureka_app_instance_hostname]
+        target_label: instance
+
+  - job_name: "ms-usuarios"
+    metrics_path: "/usuariosMs/actuator/prometheus"
+    eureka_sd_configs:
+      - server: "http://eureka-server:8761/eureka"
+        refresh_interval: 30s
+    relabel_configs:
+      - source_labels: [__meta_eureka_app_name]
+        regex: "MS-USUARIOS"
+        action: keep
+      - source_labels: [__meta_eureka_app_name]
+        target_label: application
+      - source_labels: [__meta_eureka_app_instance_hostname]
+        target_label: instance
+
+  - job_name: "ms-catalogo"
+    metrics_path: "/catalogoMs/actuator/prometheus"
+    eureka_sd_configs:
+      - server: "http://eureka-server:8761/eureka"
+        refresh_interval: 30s
+    relabel_configs:
+      - source_labels: [__meta_eureka_app_name]
+        regex: "MS-CATALOGO"
+        action: keep
+      - source_labels: [__meta_eureka_app_name]
+        target_label: application
+      - source_labels: [__meta_eureka_app_instance_hostname]
+        target_label: instance
+
+  - job_name: "ms-pedido"
+    metrics_path: "/pedidoMs/actuator/prometheus"
+    eureka_sd_configs:
+      - server: "http://eureka-server:8761/eureka"
+        refresh_interval: 30s
+    relabel_configs:
+      - source_labels: [__meta_eureka_app_name]
+        regex: "MS-PEDIDO"
+        action: keep
+      - source_labels: [__meta_eureka_app_name]
+        target_label: application
+      - source_labels: [__meta_eureka_app_instance_hostname]
+        target_label: instance
+
+  - job_name: "ms-pago"
+    metrics_path: "/pagoMs/actuator/prometheus"
+    eureka_sd_configs:
+      - server: "http://eureka-server:8761/eureka"
+        refresh_interval: 30s
+    relabel_configs:
+      - source_labels: [__meta_eureka_app_name]
+        regex: "MS-PAGO"
+        action: keep
       - source_labels: [__meta_eureka_app_name]
         target_label: application
       - source_labels: [__meta_eureka_app_instance_hostname]
