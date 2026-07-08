@@ -12,6 +12,7 @@ import { useAppDialog } from '../../../components/ui/app-dialog';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import toast, { Toaster } from 'react-hot-toast';
+import CalificarVendedorModal from './CalificarVendedorModal';
 
 export default function Navbar({ showSearchBar = false, profile, onAddressUpdate, disableAddressModal = false, onNotificationReceived }) {
   const { showAlert } = useAppDialog();
@@ -32,6 +33,9 @@ export default function Navbar({ showSearchBar = false, profile, onAddressUpdate
   const addressRef = useRef(null);
   const notifOpenRef = useRef(false);
   const onNotificationReceivedRef = useRef(onNotificationReceived);
+
+  const [calificarOpen, setCalificarOpen] = useState(false);
+  const [calificarPedidoId, setCalificarPedidoId] = useState(null);
 
   const handleLogout = () => {
     sessionStorage.clear()
@@ -98,10 +102,17 @@ export default function Navbar({ showSearchBar = false, profile, onAddressUpdate
             destacada: isOpen ? true : Boolean(nuevaNotif.destacada),
           };
 
+          // detectar entrega y disparar el modal de calificación 
+          const estado = extractEstadoFromMensaje(nuevaNotif.mensaje);
+          if (estado === 'ENTREGADO' && nuevaNotif.pedidoId) {
+            setCalificarPedidoId(nuevaNotif.pedidoId);
+            setCalificarOpen(true);
+          }
+
           if (onNotificationReceivedRef.current) {
             onNotificationReceivedRef.current(normalizada);
           }
-          
+
           toast.custom((t) => (
             <div className={`${styles.toast} ${t.visible ? styles.toastEnter : styles.toastLeave}`}>
               <div className={styles.toastIcon}>
@@ -229,6 +240,11 @@ export default function Navbar({ showSearchBar = false, profile, onAddressUpdate
         ? <span key={i} className={styles.statusHighlight}>{part}</span> 
         : part
     );
+  };
+
+  const extractEstadoFromMensaje = (mensaje = "") => {
+    const match = mensaje.match(/\b(REALIZADO|ACEPTADO|RECHAZADO|EN_PREPARACION|EN_ESPERA|EN_ENVIO|ENTREGADO|CANCELADO|PENDIENTE)\b/i);
+    return match ? match[1].toUpperCase() : null;
   };
 
   return (
@@ -434,6 +450,11 @@ export default function Navbar({ showSearchBar = false, profile, onAddressUpdate
     <Toaster 
       position="bottom-right"
       containerStyle={{ zIndex: 99999 }}
+    />
+    <CalificarVendedorModal
+      isOpen={calificarOpen}
+      pedidoId={calificarPedidoId}
+      onClose={() => setCalificarOpen(false)}
     />
     </>
   );

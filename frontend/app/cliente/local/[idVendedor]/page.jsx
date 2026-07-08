@@ -9,6 +9,37 @@ import Footer from '../../components/Footer';
 import LoadingScreen from '../../../../components/loading-screen';
 import styles from '../local.module.css';
 
+const renderStars = (rating = 0) => {
+  const stars = [];
+  const rounded = Math.round(rating * 2) / 2;
+  for (let i = 1; i <= 5; i++) {
+    if (rounded >= i) stars.push("full");
+    else if (rounded >= i - 0.5) stars.push("half");
+    else stars.push("empty");
+  }
+  return stars;
+};
+
+const Star = ({ fill, index, size = 14 }) => {
+  const gradId = `star-grad-${index}`;
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24">
+      {fill === "half" && (
+        <defs>
+          <linearGradient id={gradId} x1="0" x2="100%" y1="0" y2="0">
+            <stop offset="50%" stopColor="#FFB800" />
+            <stop offset="50%" stopColor="#e5e7eb" />
+          </linearGradient>
+        </defs>
+      )}
+      <polygon
+        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+        fill={fill === "full" ? "#FFB800" : fill === "half" ? `url(#${gradId})` : "#e5e7eb"}
+      />
+    </svg>
+  );
+};
+
 export default function LocalPage() {
   const router = useRouter();
   const params = useParams();
@@ -340,6 +371,19 @@ export default function LocalPage() {
               </p>
               <p><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e84c6a" strokeWidth="2"><rect x="1" y="3" width="15" height="13" /><polygon points="16 8 20 8 23 11 23 16 16 16 16 8" /><circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" /></svg> 
                 {vendorProfile?.realizaEnvios ? 'Realiza envíos a domicilio' : 'Solo retiro en local'}
+              </p>
+              <p>
+                <span style={{ display: "flex", alignItems: "center", gap: "2px" }}>
+                  {renderStars(vendorProfile?.calificacionPromedio || 0).map((fill, i) => (
+                    <Star key={i} index={i} fill={fill} />
+                  ))}
+                </span>
+                <span style={{ fontWeight: 700, color: "#222" }}>
+                  {(vendorProfile?.calificacionPromedio || 0).toFixed(1)}
+                </span>
+                <span style={{ color: "#9ca3af" }}>
+                  ({vendorProfile?.cantidadCalificaciones || 0} calificaciones)
+                </span>
               </p>
             </div>
           </div>

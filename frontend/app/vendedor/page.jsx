@@ -5,6 +5,37 @@ import styles from "./vendedor.module.css"
 import VendedorNavbar from "./components/vendedor-navbar"
 import LoadingScreen from "../../components/loading-screen"
 
+const renderStars = (rating = 0) => {
+  const stars = [];
+  const rounded = Math.round(rating * 2) / 2;
+  for (let i = 1; i <= 5; i++) {
+    if (rounded >= i) stars.push("full");
+    else if (rounded >= i - 0.5) stars.push("half");
+    else stars.push("empty");
+  }
+  return stars;
+};
+
+const Star = ({ fill, index, size = 14 }) => {
+  const gradId = `star-grad-${index}`;
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24">
+      {fill === "half" && (
+        <defs>
+          <linearGradient id={gradId} x1="0" x2="100%" y1="0" y2="0">
+            <stop offset="50%" stopColor="#FFB800" />
+            <stop offset="50%" stopColor="#e5e7eb" />
+          </linearGradient>
+        </defs>
+      )}
+      <polygon
+        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+        fill={fill === "full" ? "#FFB800" : fill === "half" ? `url(#${gradId})` : "#e5e7eb"}
+      />
+    </svg>
+  );
+};
+
 export default function VendedorPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isProfileComplete, setIsProfileComplete] = useState(false)
@@ -207,6 +238,23 @@ export default function VendedorPage() {
       </section>
 
       <main className={styles.mainContent}>
+        {/* ========== CALIFICACIÓN ========== */}
+        <section className={styles.calificacionWrapper}>
+          <div className={styles.calificacionCard}>
+            <p className={styles.calificacionLabel}>Calificación</p>
+            <p className={styles.calificacionValue}>
+              {(vendedorProfile?.calificacionPromedio || 0).toFixed(1)}
+            </p>
+            <div className={styles.calificacionStars}>
+              {renderStars(vendedorProfile?.calificacionPromedio || 0).map((fill, i) => (
+                <Star key={i} index={i} fill={fill} size={20} />
+              ))}
+            </div>
+            <p className={styles.calificacionCount}>
+              {vendedorProfile?.cantidadCalificaciones || 0} calificaciones
+            </p>
+          </div>
+        </section>
         {/* ========== MIS PRODUCTOS ========== */}
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
