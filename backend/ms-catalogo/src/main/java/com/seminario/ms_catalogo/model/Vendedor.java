@@ -30,4 +30,6 @@ public class Vendedor {
     private Estado estado;
     private Direccion direccion;
     private ArrayList<Producto> productos;
+    private Double calificacionPromedio = 0.0;
+    private Integer cantidadCalificaciones = 0;
 }

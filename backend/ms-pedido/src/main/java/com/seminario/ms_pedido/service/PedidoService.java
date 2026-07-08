@@ -16,10 +16,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.seminario.ms_pedido.client.CatalogoClient;
 import com.seminario.ms_pedido.client.UsuarioClient;
+import com.seminario.ms_pedido.dto.CalificacionVendedorRequestDTO;
 import com.seminario.ms_pedido.dto.CarritoResponseDTO;
 import com.seminario.ms_pedido.dto.ConfirmarEnvioRequestDTO;
 import com.seminario.ms_pedido.dto.PedidoDetalleDTO;
 import com.seminario.ms_pedido.dto.PedidoListadoDTO;
+import com.seminario.ms_pedido.dto.PedidoPendienteCalificarDTO;
 import com.seminario.ms_pedido.dto.PedidoResponseDTO;
 import com.seminario.ms_pedido.dto.PedidoVendedorResponseDTO;
 import com.seminario.ms_pedido.exception.RequestException;
@@ -31,6 +33,7 @@ import com.seminario.ms_pedido.model.Direccion;
 import com.seminario.ms_pedido.model.EstadoPedido;
 import com.seminario.ms_pedido.model.Pedido;
 import com.seminario.ms_pedido.repository.PedidoRepository;
+import com.seminario.ms_pedido.dto.VendedorResumidoDTO;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -320,5 +323,58 @@ public class PedidoService {
         
         return pedidoMapper.toResponseDTO(pedidoGuardado);
     }
+
+   @Transactional
+    public void calificarPedido(String pedidoId, Integer puntuacion, Authentication auth) {
+        String emailCliente = auth.getName();
+        Pedido pedido = pedidoRepository.findById(pedidoId)
+                .orElseThrow(() -> new RequestException("PED", 404, HttpStatus.NOT_FOUND, "Pedido no encontrado"));
+
+        Cliente cliente = clienteService.obtenerClientePorEmail(emailCliente);
+        if (!pedido.getClienteId().equals(cliente.getId())) {
+            throw new RequestException("PED", 403, HttpStatus.FORBIDDEN, "No tiene permiso para calificar este pedido");
+        }
+
+        if (!EstadoPedido.ENTREGADO.equals(pedido.getEstado())) {
+            throw new RequestException("PED", 400, HttpStatus.BAD_REQUEST, "Solo se pueden calificar pedidos entregados");
+        }
+
+        if (pedido.getPuntuacion() != null) {
+            throw new RequestException("PED", 400, HttpStatus.BAD_REQUEST, "Este pedido ya fue calificado");
+        }
+
+        pedido.setPuntuacion(puntuacion);
+        pedido.setFechaCalificacion(LocalDateTime.now());
+        pedidoRepository.save(pedido);
+
+        try {
+            catalogoClient.actualizarCalificacionVendedor(
+                pedido.getVendedorId(),
+                new CalificacionVendedorRequestDTO(puntuacion)
+            );
+        } catch (Exception ex) {
+            log.warn("Pedido {} calificado, pero fallo la actualización de calificación en ms-catalogo: {}", pedidoId, ex.getMessage());
+        }
+    }
+
+    public List<PedidoPendienteCalificarDTO> obtenerPedidosPendientesDeCalificar(String emailCliente) {
+        Cliente cliente = clienteService.obtenerClientePorEmail(emailCliente);
+        List<Pedido> pedidos = pedidoRepository
+                .findByClienteIdAndEstadoAndPuntuacionIsNull(cliente.getId(), EstadoPedido.ENTREGADO);
+
+        return pedidos.stream()
+                .map(p -> {
+                    VendedorResumidoDTO vendedor = catalogoClient.obtenerDatosVendedor(p.getVendedorId());
+                    return new PedidoPendienteCalificarDTO(
+                            p.getId(),
+                            p.getVendedorId(),
+                            vendedor.getNombreNegocio(), 
+                            p.getDetalles() != null ? p.getDetalles().size() : 0
+                    );
+                })
+                .toList();
+    }
+
+
 
 }

@@ -66,4 +66,8 @@ public class Pedido {
     @JoinColumn(name = "id_cliente", nullable = false)// this line specifies the foreign key column  idUsuario in the "direccion" table
     @ToString.Exclude // important to avoid circular references in toString() method
     private Cliente cliente;
+
+    private Integer puntuacion; // 1 a 5, null = todavía no calificado
+
+    private LocalDateTime fechaCalificacion;
 }

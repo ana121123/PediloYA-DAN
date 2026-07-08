@@ -19,15 +19,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.seminario.ms_pedido.dto.CalificarPedidoRequestDTO;
 import com.seminario.ms_pedido.dto.ConfirmarEnvioRequestDTO;
 import com.seminario.ms_pedido.dto.PedidoDetalleDTO;
 import com.seminario.ms_pedido.dto.PedidoListadoDTO;
+import com.seminario.ms_pedido.dto.PedidoPendienteCalificarDTO;
 import com.seminario.ms_pedido.dto.PedidoResponseDTO;
 import com.seminario.ms_pedido.dto.PedidoVendedorResponseDTO;
 import com.seminario.ms_pedido.model.EstadoPedido;
 import com.seminario.ms_pedido.service.PedidoService;
 
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 
@@ -132,4 +135,20 @@ public class PedidoController {
         return ResponseEntity.ok(actualizado);
     }
 
+    @PatchMapping("/{id}/calificar")
+    @Operation(summary = "Permite al cliente calificar un pedido entregado")
+    public ResponseEntity<Void> calificarPedido(
+            @PathVariable String id,
+            @Valid @RequestBody CalificarPedidoRequestDTO dto,
+            Authentication auth) {
+        pedidoService.calificarPedido(id, dto.getPuntuacion(), auth);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/pendientes-calificar")
+    @Operation(summary = "Obtiene los pedidos entregados que el cliente aún no calificó")
+    public ResponseEntity<List<PedidoPendienteCalificarDTO>> obtenerPendientesCalificar(Authentication auth) {
+        return ResponseEntity.ok(pedidoService.obtenerPedidosPendientesDeCalificar(auth.getName()));
+    }
 }
+

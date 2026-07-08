@@ -36,6 +36,8 @@ export default function Navbar({ showSearchBar = false, profile, onAddressUpdate
 
   const [calificarOpen, setCalificarOpen] = useState(false);
   const [calificarPedidoId, setCalificarPedidoId] = useState(null);
+  const [calificarNombreVendedor, setCalificarNombreVendedor] = useState(null);
+  const [pendientesCalificar, setPendientesCalificar] = useState([]);
 
   const handleLogout = () => {
     sessionStorage.clear()
@@ -51,6 +53,25 @@ export default function Navbar({ showSearchBar = false, profile, onAddressUpdate
 
     setAddressOpen(true);    
   };
+
+  useEffect(() => {
+    const fetchPendientesCalificar = async () => {
+      const token = sessionStorage.getItem("token");
+      const res = await fetch('/pedidoMs/pedidos/pendientes-calificar', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.length > 0) {
+          setPendientesCalificar(data); // nuevo estado: cola de pedidos por calificar
+          setCalificarPedidoId(data[0].id);
+          setCalificarNombreVendedor(data[0].nombreVendedor);
+          setCalificarOpen(true);
+        }
+      }
+    };
+    fetchPendientesCalificar();
+  }, []);
 
   useEffect(() => {
     const fetchNotif = async () => {
@@ -105,8 +126,15 @@ export default function Navbar({ showSearchBar = false, profile, onAddressUpdate
           // detectar entrega y disparar el modal de calificación 
           const estado = extractEstadoFromMensaje(nuevaNotif.mensaje);
           if (estado === 'ENTREGADO' && nuevaNotif.pedidoId) {
-            setCalificarPedidoId(nuevaNotif.pedidoId);
-            setCalificarOpen(true);
+            setPendientesCalificar(prev => {
+              if (prev.some(p => p.id === nuevaNotif.pedidoId)) return prev;
+              const nuevos = [...prev, { id: nuevaNotif.pedidoId, vendedorId: null }];
+              if (!calificarOpen) {
+                setCalificarPedidoId(nuevos[0].id);
+                setCalificarOpen(true);
+              }
+              return nuevos;
+            });
           }
 
           if (onNotificationReceivedRef.current) {
@@ -245,6 +273,21 @@ export default function Navbar({ showSearchBar = false, profile, onAddressUpdate
   const extractEstadoFromMensaje = (mensaje = "") => {
     const match = mensaje.match(/\b(REALIZADO|ACEPTADO|RECHAZADO|EN_PREPARACION|EN_ESPERA|EN_ENVIO|ENTREGADO|CANCELADO|PENDIENTE)\b/i);
     return match ? match[1].toUpperCase() : null;
+  };
+
+  const avanzarCola = () => {
+    setPendientesCalificar(prev => {
+      const restantes = prev.slice(1);
+      if (restantes.length > 0) {
+        setCalificarPedidoId(restantes[0].id);
+        setCalificarNombreVendedor(restantes[0].nombreVendedor);
+      } else {
+        setCalificarOpen(false);
+        setCalificarPedidoId(null);
+        setCalificarNombreVendedor(null);
+      }
+      return restantes;
+    });
   };
 
   return (
@@ -454,7 +497,9 @@ export default function Navbar({ showSearchBar = false, profile, onAddressUpdate
     <CalificarVendedorModal
       isOpen={calificarOpen}
       pedidoId={calificarPedidoId}
-      onClose={() => setCalificarOpen(false)}
+      nombreVendedor={calificarNombreVendedor}
+      onSuccess={avanzarCola}
+      onSkip={avanzarCola}
     />
     </>
   );

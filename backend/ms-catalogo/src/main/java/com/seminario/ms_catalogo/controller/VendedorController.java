@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.seminario.ms_catalogo.dto.CalificacionVendedorRequestDTO;
 import com.seminario.ms_catalogo.dto.ProductoRequestDTO;
 import com.seminario.ms_catalogo.dto.ProductoResponseBusquedaDTO;
 import com.seminario.ms_catalogo.dto.ProductoResponseDTO;
@@ -25,6 +27,9 @@ import com.seminario.ms_catalogo.dto.VendedorResponsePublicDTO;
 import com.seminario.ms_catalogo.dto.VendedorResumidoDTO;
 import com.seminario.ms_catalogo.dto.eventos_ms_usuarios.VendedorRegistradoEvent;
 import com.seminario.ms_catalogo.service.VendedorService;
+
+import com.seminario.ms_catalogo.dto.CalificacionVendedorRequestDTO;
+import org.springframework.web.bind.annotation.PatchMapping;
 
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -182,6 +187,16 @@ public class VendedorController {
         String idVendedor = vendedorService.obtenerIdPorEmail(email);
         return ResponseEntity.ok(idVendedor);
     }
+
+    @PatchMapping("/{id}/calificacion")
+    @Operation(summary = "Actualiza la calificación promedio de un vendedor. Llamado internamente por ms-pedido")
+    public ResponseEntity<Void> actualizarCalificacion(
+            @PathVariable String id,
+            @Valid @RequestBody CalificacionVendedorRequestDTO dto) {
+        vendedorService.actualizarCalificacion(id, dto.getPuntuacion());
+        return ResponseEntity.noContent().build();
+    }
+
 
 
 }

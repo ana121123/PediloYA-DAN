@@ -482,5 +482,22 @@ public class VendedorService {
                 .orElseThrow(() -> new RequestException("CA", 2, HttpStatus.BAD_REQUEST, "Vendedor no encontrado con email: " + email));
     }
 
+    @Transactional
+    public void actualizarCalificacion(String vendedorId, Integer puntuacion) {
+        Vendedor vendedor = vendedorRepository.findById(vendedorId)
+                .orElseThrow(() -> new RequestException("CA", 2, HttpStatus.BAD_REQUEST, "Vendedor no encontrado con ID: " + vendedorId));
+
+        Integer cantidadActual = vendedor.getCantidadCalificaciones() != null ? vendedor.getCantidadCalificaciones() : 0;
+        Double promedioActual = vendedor.getCalificacionPromedio() != null ? vendedor.getCalificacionPromedio() : 0.0;
+
+        Integer nuevaCantidad = cantidadActual + 1;
+        Double nuevoPromedio = ((promedioActual * cantidadActual) + puntuacion) / nuevaCantidad;
+
+        vendedor.setCantidadCalificaciones(nuevaCantidad);
+        vendedor.setCalificacionPromedio(nuevoPromedio);
+
+        vendedorRepository.save(vendedor);
+    }
+
 }
 

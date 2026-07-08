@@ -18,4 +18,6 @@ public class VendedorResponsePublicDTO {
     private String logo;
     private DireccionDTO direccion;
     private List<ProductoResponsePublicDTO> productos;
+    private Double calificacionPromedio;
+    private Integer cantidadCalificaciones;
 }

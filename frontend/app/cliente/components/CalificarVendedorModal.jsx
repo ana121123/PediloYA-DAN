@@ -3,7 +3,7 @@
 import { useState } from "react";
 import styles from "./CalificarVendedorModal.module.css";
 
-export default function CalificarVendedorModal({ isOpen, pedidoId, onClose }) {
+export default function CalificarVendedorModal({ isOpen, pedidoId, nombreVendedor, onSuccess, onSkip }) {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [submitting, setSubmitting] = useState(false);
@@ -15,15 +15,15 @@ export default function CalificarVendedorModal({ isOpen, pedidoId, onClose }) {
     setSubmitting(true);
     try {
       const token = sessionStorage.getItem("token");
-      const res = await fetch(`/pedidoMs/pedidos/${pedidoId}/calificacion`, {
-        method: "POST",
+      const res = await fetch(`/pedidoMs/pedidos/${pedidoId}/calificar`, {
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ puntuacion: rating }),
       });
-      if (res.ok) onClose();
+      if (res.ok) onSuccess();
     } catch (error) {
       console.error("Error al calificar vendedor:", error);
     } finally {
@@ -35,7 +35,9 @@ export default function CalificarVendedorModal({ isOpen, pedidoId, onClose }) {
     <div className={styles.overlay}>
       <div className={styles.modal}>
         <h2 className={styles.title}>¿Cómo fue tu experiencia de compra?</h2>
-        <p className={styles.subtitle}>Califica al vendedor:</p>
+         <p className={styles.subtitle}>
+          {nombreVendedor ? `Califica a ${nombreVendedor}:` : "Califica al vendedor:"}
+        </p>
 
         <div className={styles.stars}>
           {[1, 2, 3, 4, 5].map((star) => (
@@ -58,7 +60,7 @@ export default function CalificarVendedorModal({ isOpen, pedidoId, onClose }) {
         </div>
 
         <div className={styles.actions}>
-          <button className={styles.omitirBtn} onClick={onClose} disabled={submitting}>
+          <button className={styles.omitirBtn} onClick={onSkip} disabled={submitting}>
             Omitir
           </button>
           <button

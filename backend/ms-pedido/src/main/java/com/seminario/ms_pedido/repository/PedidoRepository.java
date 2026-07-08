@@ -41,5 +41,7 @@ public interface PedidoRepository extends JpaRepository<Pedido, String> {
         LocalDateTime inicio, 
         LocalDateTime fin
     );
+
+    List<Pedido> findByClienteIdAndEstadoAndPuntuacionIsNull(String clienteId, EstadoPedido estado);
 }
     

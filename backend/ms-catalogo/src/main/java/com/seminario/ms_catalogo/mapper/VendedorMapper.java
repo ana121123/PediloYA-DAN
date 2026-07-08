@@ -57,6 +57,8 @@ public class VendedorMapper {
         dto.setHorarioCierre(vendedor.getHorarioCierre());
         dto.setTiempoEstimadoEspera(vendedor.getTiempoEstimadoEspera());
         dto.setEstado(vendedor.getEstado().toString());
+        dto.setCalificacionPromedio(vendedor.getCalificacionPromedio() != null ? vendedor.getCalificacionPromedio() : 0.0);
+        dto.setCantidadCalificaciones(vendedor.getCantidadCalificaciones() != null ? vendedor.getCantidadCalificaciones() : 0);
         if (vendedor.getDireccion() != null) {
             dto.setDireccion(direccionMapper.toDTO(vendedor.getDireccion()));
         }
@@ -148,6 +150,8 @@ public class VendedorMapper {
         dto.setHorarioCierre(vendedor.getHorarioCierre());
         dto.setTiempoEstimadoEspera(vendedor.getTiempoEstimadoEspera());
         dto.setLogo(vendedor.getLogo());
+        dto.setCalificacionPromedio(vendedor.getCalificacionPromedio() != null ? vendedor.getCalificacionPromedio() : 0.0);
+        dto.setCantidadCalificaciones(vendedor.getCantidadCalificaciones() != null ? vendedor.getCantidadCalificaciones() : 0);
         if (vendedor.getDireccion() != null) {
             dto.setDireccion(direccionMapper.toDTO(vendedor.getDireccion()));
         }
