@@ -35,7 +35,7 @@ public class Cliente {
     private String telefono;
     @Column(name = "fechaNacimiento")
     private LocalDate fechaNacimiento;
-    @Column(name = "foto")
+    @Column(name = "foto", columnDefinition = "TEXT")
     private String foto;
 
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

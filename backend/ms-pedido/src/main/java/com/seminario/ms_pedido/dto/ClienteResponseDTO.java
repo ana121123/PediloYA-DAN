@@ -13,6 +13,7 @@ public class ClienteResponseDTO {
     private String email;
     private String telefono;
     private LocalDate fechaNacimiento;
+    private String foto;
     private ArrayList<DireccionResponseDTO> direcciones;
     //private ArrayList<PedidoResponseDTO> pedidos; 
     

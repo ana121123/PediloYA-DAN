@@ -21,8 +21,7 @@ export default function ClientePerfilPage() {
 
   // Estado para previsualizar imágenes cargadas
   const [previews, setPreviews] = useState({
-    logo: null,
-    banner: null
+    foto: null
   })
 
   const [formData, setFormData] = useState({
@@ -31,6 +30,12 @@ export default function ClientePerfilPage() {
     apellido: "",
     telefono: "",
     foto:null
+  })
+
+  const [perfilGuardado, setPerfilGuardado] = useState({
+    nombre: "",
+    apellido: "",
+    foto: null
   })
 
   // ========= EFFECTS (CARGA DE DATOS) =========
@@ -45,8 +50,9 @@ export default function ClientePerfilPage() {
 
     const cargarDatos = async () => {
       try {
-        const resPerfil = await fetch('/pedidoMs/api/clientes/perfil', {
-            headers: { 'Authorization': `Bearer ${token}` }
+        const resPerfil = await fetch('/pedidoMs/clientes/perfil', {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${token}` }
         })
 
         if (resPerfil.status === 401 || resPerfil.status === 403) {
@@ -65,6 +71,12 @@ export default function ClientePerfilPage() {
                 nombre: data.nombre || "",
                 apellido: data.apellido|| "",
                 foto: data.foto
+            })
+
+            setPerfilGuardado({
+                nombre: data.nombre || "",
+                apellido: data.apellido || "",
+                foto: data.foto || null
             })
 
             setPreviews(prev => ({
@@ -151,7 +163,7 @@ export default function ClientePerfilPage() {
       let fotoToSend = formData.foto;
 
       // Solo si el usuario subió un archivo NUEVO (es tipo File), generamos el nuevo Base64
-      if (formData.logo instanceof File) {
+      if (formData.foto instanceof File) {
         fotoToSend = await fileToBase64(formData.foto);
       }
 
@@ -165,7 +177,7 @@ export default function ClientePerfilPage() {
       }
 
       // ENVIAR COMO JSON 
-      const response = await fetch('/pedidoMs/api/clientes/actualizar', {
+      const response = await fetch('/pedidoMs/clientes/actualizar', {
         method: 'PUT', 
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -188,6 +200,12 @@ export default function ClientePerfilPage() {
       await showAlert({
         title: "Operación exitosa",
         description: "¡Perfil actualizado correctamente!",
+      })
+
+      setPerfilGuardado({
+        nombre: formData.nombre,
+        apellido: formData.apellido,
+        foto: fotoToSend
       })
 
     } catch (error) {
@@ -213,11 +231,7 @@ export default function ClientePerfilPage() {
     setFormData((prev) => ({ ...prev, [field]: null }))
   }
 
-  const datosParaNavbar = {
-      nombre: formData.nombre,
-      apellido: formData.apellido,
-      foto: formData.foto
-  }
+  const datosParaNavbar = perfilGuardado
 
   if (isInitialLoading) {
     return <LoadingScreen text="Cargando perfil..." />
@@ -243,7 +257,7 @@ export default function ClientePerfilPage() {
           <form onSubmit={handleSubmit}>
             {/* Uploaders */}
               <div className={styles.uploadersRow}>
-                {/* LOGO UPLOAD */}
+                {/* FOTO UPLOAD */}
                 <div className={styles.formGroup}>
                   <label className={styles.uploadBox} htmlFor="foto-upload">
                     <input 
@@ -253,9 +267,9 @@ export default function ClientePerfilPage() {
                       accept="image/*"
                       onChange={(e) => handleImageChange(e, 'foto')}
                     />
-                    {previews.logo ? (
+                    {previews.foto ? (
                       <div className={styles.previewWrapper}> 
-                        <img src={previews.logo} alt="Foto preview" className={styles.imagePreview} />
+                        <img src={previews.foto} alt="Foto preview" className={styles.imagePreview} />
                         
                         <button 
                           className={styles.removeButton} 

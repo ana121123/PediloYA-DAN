@@ -37,6 +37,7 @@ public class ClienteMapper {
         responseDTO.setEmail(cliente.getEmail());
         responseDTO.setTelefono(cliente.getTelefono());
         responseDTO.setFechaNacimiento(cliente.getFechaNacimiento());
+        responseDTO.setFoto(cliente.getFoto());
         ArrayList<DireccionResponseDTO> direccionesDTO = cliente.getDireccion() != null ? cliente.getDireccion().stream().map(direccionMapper::toResponseDTO).collect(Collectors.toCollection(ArrayList::new)) : new ArrayList<>();
         responseDTO.setDirecciones(direccionesDTO);
         //responseDTO.setPedidos(null);
