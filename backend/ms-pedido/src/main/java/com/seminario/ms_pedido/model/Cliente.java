@@ -35,6 +35,8 @@ public class Cliente {
     private String telefono;
     @Column(name = "fechaNacimiento")
     private LocalDate fechaNacimiento;
+    @Column(name = "foto")
+    private String foto;
 
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @ToString.Exclude // Evita el bucle infinito al hacer log o print

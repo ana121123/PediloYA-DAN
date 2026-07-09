@@ -7,7 +7,9 @@ import org.springframework.web.service.annotation.DeleteExchange;
 import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.HttpExchange;
 import org.springframework.web.service.annotation.PostExchange;
+import org.springframework.web.service.annotation.PutExchange;
 
+import com.seminario.ms_pedido.dto.ClienteRequestDTO;
 import com.seminario.ms_pedido.dto.DireccionRequestDTO;
 import com.seminario.ms_pedido.dto.DireccionResponseDTO;
 
@@ -26,6 +28,9 @@ public interface UsuarioClient {
 
     @DeleteExchange("/direcciones/{idDireccion}")
     void eliminarDireccion(@PathVariable @NonNull String idDireccion);
+
+    @PutExchange(url = "/clientes/actualizar")
+    @NonNull ClienteRequestDTO actualizarCliente(@RequestBody @NonNull ClienteRequestDTO clienteRequestDTO);
 
     /*@CircuitBreaker(name = "usuarioClient", fallbackMethod = "buscarDatosDireccionFallback")
     @Retry(name = "usuarioClient")
