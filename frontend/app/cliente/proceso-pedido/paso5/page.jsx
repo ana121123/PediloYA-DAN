@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import confetti from 'canvas-confetti';
-
+import ChatbotFlotante from '../../components/ChatbotFlotante';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import Stepper from '../../components/Stepper';

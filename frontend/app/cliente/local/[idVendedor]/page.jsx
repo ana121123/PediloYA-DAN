@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
+import ChatbotFlotante from '../../components/ChatbotFlotante';
 import LoadingScreen from '../../../../components/loading-screen';
 import styles from '../local.module.css';
 
@@ -505,7 +506,8 @@ export default function LocalPage() {
           )}
         </div>
       </main>
-
+      
+      <ChatbotFlotante profile={clientProfile} />
       <Footer />
 
       {/* Product Detail Modal */}

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import ChatbotFlotante from '../components/ChatbotFlotante';
 import LoadingScreen from '../../../components/loading-screen';
 import styles from './carrito.module.css';
 
@@ -286,6 +287,7 @@ export default function CarritoPage() {
         )}
       </main>
 
+      <ChatbotFlotante profile={clientProfile} />  
       <Footer />
     </div>
   );

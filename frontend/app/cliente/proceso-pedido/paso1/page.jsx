@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
+import ChatbotFlotante from '../../components/ChatbotFlotante';
 import Stepper from '../../components/Stepper';
 import ResumenCompra from '../../components/ResumenCompra';
 import LoadingScreen from '../../../../components/loading-screen';
@@ -285,7 +286,7 @@ export default function Paso1Page() {
           </button>
         </div>
       </main>
-
+      <ChatbotFlotante profile={clientProfile} />
       <Footer />
     </div>
   );

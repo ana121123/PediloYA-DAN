@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import ChatbotFlotante from './components/ChatbotFlotante';
 import LoadingScreen from '../../components/loading-screen';
 import { useAppDialog } from '../../components/ui/app-dialog';
 import styles from './cliente.module.css';
@@ -403,6 +404,7 @@ export default function ClienteHome() {
         </section>
       </main>
 
+      <ChatbotFlotante profile={clientProfile} />      
       <Footer />
     </div>
   );

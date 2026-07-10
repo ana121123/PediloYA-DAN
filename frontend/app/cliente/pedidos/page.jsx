@@ -6,6 +6,7 @@ import Image from "next/image";
 import styles from "./pedidos.module.css";
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
+import ChatbotFlotante from '../components/ChatbotFlotante';
 import LoadingScreen from '../../../components/loading-screen';
 
 const STATUS_FILTERS = ["Entregados", "Cancelados"];
@@ -367,6 +368,7 @@ export default function MisPedidosPage() {
         </div>
         )}
       </main>
+      <ChatbotFlotante profile={clientProfile} />
       <Footer />
     </div>
   );

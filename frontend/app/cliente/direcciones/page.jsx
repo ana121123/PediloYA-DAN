@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import styles from './direcciones.module.css';
+import ChatbotFlotante from '../components/ChatbotFlotante';
 import NewAddressModal from '../components/NewAddressModal';
 import { useAppDialog } from '../../../components/ui/app-dialog';
 
@@ -231,6 +232,7 @@ useEffect(() => {
         </div>
       </main>
 
+      <ChatbotFlotante profile={clientProfile} /> 
       <Footer />
 
       {/* New Address Modal */}

@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import ChatbotFlotante from '../components/ChatbotFlotante';
 import styles from './buscar.module.css';
 
 export default function BuscarPage() {
@@ -284,6 +285,7 @@ export default function BuscarPage() {
         )}
       </main>
 
+      <ChatbotFlotante profile={clientProfile} />  
       <Footer />
     </div>
   );

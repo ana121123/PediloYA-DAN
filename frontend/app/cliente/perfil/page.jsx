@@ -6,6 +6,8 @@ import styles from "./perfil.module.css"
 import Link from "next/link"
 import Image from "next/image"
 import ClienteNavbar from "../components/Navbar"
+import Footer from '../components/Footer';
+import ChatbotFlotante from '../components/ChatbotFlotante';
 import LoadingScreen from "../../../components/loading-screen"
 import { useAppDialog } from "../../../components/ui/app-dialog"
 
@@ -37,6 +39,8 @@ export default function ClientePerfilPage() {
     apellido: "",
     foto: null
   })
+
+  const [clientProfile, setClientProfile] = useState(null)
 
   // ========= EFFECTS (CARGA DE DATOS) =========
   useEffect(() => {
@@ -83,6 +87,8 @@ export default function ClientePerfilPage() {
                 ...prev, 
                 foto: data.foto || null  
             }))
+
+            setClientProfile(data)
         }
       } catch (error) {
         console.error("Error cargando datos:", error)
@@ -208,6 +214,14 @@ export default function ClientePerfilPage() {
         foto: fotoToSend
       })
 
+      setClientProfile(prev => ({
+        ...prev,
+        nombre: formData.nombre,
+        apellido: formData.apellido,
+        telefono: formData.telefono,
+        foto: fotoToSend
+      }))
+
     } catch (error) {
       console.error(error)
       await showAlert({
@@ -231,15 +245,13 @@ export default function ClientePerfilPage() {
     setFormData((prev) => ({ ...prev, [field]: null }))
   }
 
-  const datosParaNavbar = perfilGuardado
-
   if (isInitialLoading) {
     return <LoadingScreen text="Cargando perfil..." />
   }
 
   return (
     <div className={styles.pageWrapper}>
-      <ClienteNavbar profile={datosParaNavbar} />
+      <ClienteNavbar profile={clientProfile} />
 
       {/* CONTENT */}
       <div className={styles.content}>
@@ -361,12 +373,8 @@ export default function ClientePerfilPage() {
         </div>
       </div>
 
-      {/* FOOTER */}
-      <footer className={styles.footer}>
-        <div className={`${styles.container} ${styles.footerInner}`}>
-          <p className={styles.footerText}>PediloYa © 2026. Todos los derechos reservados.</p>
-        </div>
-      </footer>
+      <ChatbotFlotante profile={clientProfile} />
+      <Footer />
     </div>
   )
 }

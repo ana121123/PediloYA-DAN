@@ -6,6 +6,7 @@ import Image from "next/image";
 import styles from "../detalle-pedido.module.css";
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
+import ChatbotFlotante from '../../components/ChatbotFlotante';
 import LoadingScreen from '../../../../components/loading-screen';
 
 
@@ -375,6 +376,7 @@ export default function DetallePedidoPage({ params }) {
           </div>
         </div>
       </main>
+      <ChatbotFlotante profile={clientProfile} />
       <Footer />
     </div>
   );

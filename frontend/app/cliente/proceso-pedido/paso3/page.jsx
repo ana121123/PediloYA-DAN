@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
+import ChatbotFlotante from '../../components/ChatbotFlotante';
 import Stepper from '../../components/Stepper';
 import ResumenCompra from '../../components/ResumenCompra';
 import styles from '../proceso-pedido.module.css';
@@ -131,7 +132,7 @@ export default function Paso3Page() {
           </Link>
         </div>
       </main>
-
+      <ChatbotFlotante profile={clientProfile} />
       <Footer />
     </div>
   );
