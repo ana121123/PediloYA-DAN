@@ -531,6 +531,38 @@
   opacity: 0.9;
 }
 
+/* ===================== IA ===================== */
+
+.formLabelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.aiButton {
+  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  color: white;
+  font-family: inherit;
+  font-size: 0.625rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.aiButton:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.aiButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* ===================== FOOTER ===================== */
 .footer {
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);

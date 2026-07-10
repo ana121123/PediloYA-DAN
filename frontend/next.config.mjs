@@ -31,6 +31,11 @@ const nextConfig = {
         source: '/pagoMs/:path*',
         destination: `${GATEWAY_URL}/pagoMs/:path*`,
       },
+      {
+        // 5. Todo lo que sea de IA -> Al Gateway (8090)
+        source: '/iaMs/:path*',
+        destination: `${GATEWAY_URL}/iaMs/:path*`,
+      },
     ]
   },
 }

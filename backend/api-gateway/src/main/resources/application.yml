@@ -39,6 +39,10 @@ spring:
               uri: lb://ms-pago
               predicates:
                 - Path=/pagoMs/**
+            - id: ms-ia
+              uri: lb://ms-ia
+              predicates:
+                - Path=/iaMs/**    
 
 # Configuración para que el Gateway se conecte a Eureka
 eureka:

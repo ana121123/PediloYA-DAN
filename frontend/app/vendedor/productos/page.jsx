@@ -34,7 +34,8 @@ export default function VendedorProductosPage() {
 
   const [products, setProducts] = useState([])
   const [isLoadingData, setIsLoadingData] = useState(true)
-
+  const [isGeneratingDesc, setIsGeneratingDesc] = useState(false)
+  
   const [formData, setFormData] = useState({
     nombre: "",
     descripcion: "",
@@ -273,6 +274,51 @@ export default function VendedorProductosPage() {
 
         return { ...prev, [name]: value }
     })
+  }
+
+  const handleGenerarDescripcion = async () => {
+    if (!formData.nombre || !formData.nombre.trim()) {
+      await showAlert({
+        title: "Falta el nombre",
+        description: "Ingresá el nombre del producto antes de generar la descripción.",
+      })
+      return
+    }
+
+    setIsGeneratingDesc(true)
+    const token = sessionStorage.getItem("token")
+
+    try {
+      const response = await fetch('/iaMs/ia/productos/descripcion', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          nombreProducto: formData.nombre,
+          descripcionActual: formData.descripcion
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setFormData((prev) => ({ ...prev, descripcion: data.descripcion }))
+      } else {
+        await showAlert({
+          title: "No se pudo generar la descripción",
+          description: "Intentá de nuevo en unos segundos.",
+        })
+      }
+    } catch (error) {
+      console.error("Error generando descripción con IA:", error)
+      await showAlert({
+        title: "Error de conexión",
+        description: "No se pudo conectar con el servicio de IA.",
+      })
+    } finally {
+      setIsGeneratingDesc(false)
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -577,7 +623,19 @@ export default function VendedorProductosPage() {
               </div>
 
               <div className={styles.formGroup}>
-                <label className={styles.formLabel}>Descripción</label>
+                <div className={styles.formLabelRow}>
+                  <label className={styles.formLabel}>Descripción</label>
+                  {isEditing && (
+                    <button
+                      type="button"
+                      className={styles.aiButton}
+                      onClick={handleGenerarDescripcion}
+                      disabled={isGeneratingDesc || !formData.nombre}
+                    >
+                      {isGeneratingDesc ? "Generando..." : "✨ Mejorar con IA"}
+                    </button>
+                  )}
+                </div>
                 <textarea
                   name="descripcion"
                   className={styles.formTextarea}
