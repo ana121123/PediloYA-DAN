@@ -141,6 +141,33 @@ services:
       timeout: 5s
       retries: 10
 
+  # --- MS IA ---
+  ms-ia:
+    build: ../backend/ms-ia
+    container_name: ms-ia
+    ports:
+      - "8085:8085"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://pago-db:5432/pago_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=admin
+      - USUARIOS_MS_URL=http://ms-usuarios:8080
+      - CATALOGO_MS_URL=http://ms-catalogo:8081
+      - PEDIDO_MS_URL=http://ms-pedido:8082
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      ms-catalogo:
+        condition: service_healthy
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8085/iaMs/swagger-ui.html >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   # --- BASE DE DATOS USUARIOS (SQL) ---
   usuario-db:
     image: postgres:15-alpine
