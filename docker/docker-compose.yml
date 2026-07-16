@@ -47,6 +47,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=admin
       - CATALOGO_MS_URL=http://ms-catalogo:8081
       - PEDIDO_MS_URL=http://ms-pedido:8082
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-broker-1:9092
     depends_on:
       eureka-server:
         condition: service_healthy
@@ -72,6 +73,7 @@ services:
       - SPRING_DATA_MONGODB_URI=mongodb://catalogo-db:27017/catalogo_db
       - USUARIOS_MS_URL=http://ms-usuarios:8080
       - PEDIDO_MS_URL=http://ms-pedido:8082
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-broker-1:9092
     depends_on:
       eureka-server:
         condition: service_healthy
@@ -99,6 +101,7 @@ services:
       - SPRING_DATA_MONGODB_URI=mongodb://pedido-mongo-db:27017/pedido_db
       - USUARIOS_MS_URL=http://ms-usuarios:8080
       - CATALOGO_MS_URL=http://ms-catalogo:8081
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-broker-1:9092
     depends_on:
       eureka-server:
         condition: service_healthy
@@ -128,6 +131,7 @@ services:
       - USUARIOS_MS_URL=http://ms-usuarios:8080
       - CATALOGO_MS_URL=http://ms-catalogo:8081
       - PEDIDO_MS_URL=http://ms-pedido:8082
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-broker-1:9092
     depends_on:
       eureka-server:
         condition: service_healthy
@@ -310,6 +314,90 @@ services:
     networks:
       - app-network
 
+
+  # ==================== ZOOKEEPER ====================
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "echo", "ruok", "|", "nc", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==================== KAFKA BROKERS ====================
+  kafka-broker-1:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka-broker-1
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker-1:9092,PLAINTEXT_HOST://localhost:19092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1  # EN DEV. En PROD: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1      # EN DEV. En PROD: 2
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1  # EN DEV. En PROD: 3
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"    # fuerza creación manual
+      KAFKA_LOG_RETENTION_HOURS: 168               # 7 días
+      KAFKA_LOG_SEGMENT_BYTES: 1073741824          # 1GB
+    ports:
+      - "19092:9092"
+      - "9092:9092"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "kafka-broker-version.sh", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092", "localhost:19092"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # NOTA: En PROD añadir kafka-broker-2 y kafka-broker-3 con BROKER_ID: 2,3
+
+  # ==================== KAFKA UI (OPCIONAL, RECOMENDADO) ====================
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    depends_on:
+      - kafka-broker-1
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-broker-1:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    ports:
+      - "8087:8080"
+    networks:
+      - app-network
+
+  # ==================== TOPIC INIT ====================
+  kafka-init:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka-init
+    depends_on:
+      kafka-broker-1:
+        condition: service_healthy
+    volumes:
+      - ./kafka/scripts/init-topics.sh:/scripts/init-topics.sh
+    entrypoint: ["/bin/bash"]
+    command: ["/scripts/init-topics.sh"]
+    networks:
+      - app-network
+
 networks:
   app-network:
     driver: bridge
+    
+volumes:
+  kafka-data:
+  zookeeper-data:
+  kafka-broker-1-data:
