@@ -23,6 +23,7 @@ export default function VendedorProductosPage() {
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [isEditing, setIsEditing] = useState(false)
   const [isNewProduct, setIsNewProduct] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
 
   const [fieldErrors, setFieldErrors] = useState({}) 
   const [globalError, setGlobalError] = useState("")
@@ -408,6 +409,30 @@ export default function VendedorProductosPage() {
     setFilters((prev) => ({ ...prev, [type]: value }))
   }
 
+  const handleDragOver = (e) => {
+  e.preventDefault()
+  e.stopPropagation()
+  if (isEditing) setIsDragging(true)
+}
+
+const handleDragLeave = (e) => {
+  e.preventDefault()
+  e.stopPropagation()
+  setIsDragging(false)
+}
+
+const handleDrop = (e) => {
+  e.preventDefault()
+  e.stopPropagation()
+  setIsDragging(false)
+
+  if (!isEditing) return // respeta el mismo disabled que ya tenías
+
+  const file = e.dataTransfer.files?.[0]
+  processImageFile(file)
+}
+
+
   const clearFilters = () => {
     setFilters({
       categoria: "",
@@ -425,7 +450,7 @@ export default function VendedorProductosPage() {
     window.location.href = path
   }
 
-
+/*
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     
@@ -439,7 +464,24 @@ export default function VendedorProductosPage() {
       };
     }
   }
+*/
+// Reemplazá tu handleImageChange actual por esto:
+const processImageFile = (file) => {
+  if (!file || !file.type.startsWith("image/")) return
 
+  const reader = new FileReader()
+  reader.readAsDataURL(file)
+  reader.onloadend = () => {
+    const base64String = reader.result
+    setFormData(prev => ({ ...prev, imagen: base64String }))
+    setPreviews(prev => ({ ...prev, imagen: base64String }))
+  }
+}
+
+const handleImageChange = (e) => {
+  const file = e.target.files[0]
+  processImageFile(file)
+}
   const handleRemoveImage = (e) => {
     e.preventDefault()
     e.stopPropagation()
@@ -567,7 +609,13 @@ export default function VendedorProductosPage() {
           {/* Form */}
           <div className={styles.formPanel}>
             <div className={styles.formImageUpload}>
-              <label className={`${styles.imageUploadArea} ${!isEditing ? styles.imageUploadAreaDisabled : ""}`} htmlFor="producto-upload">
+              <label
+                className={`${styles.imageUploadArea} ${!isEditing ? styles.imageUploadAreaDisabled : ""} ${isDragging ? styles.imageUploadAreaDragging : ""}`}
+                htmlFor="producto-upload"
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
                 <input 
                   type="file" 
                   id="producto-upload" 

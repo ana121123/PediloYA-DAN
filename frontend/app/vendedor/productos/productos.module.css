@@ -284,6 +284,12 @@
   border-color: #d1d5db;
   cursor: not-allowed;
 }
+.imageUploadAreaDragging {
+  border-color: #ff4b7e;
+  background: #fff0f4;
+  transform: scale(1.02);
+  transition: all 0.15s ease;
+}
 
 .previewWrapper {
   width: 100%;
