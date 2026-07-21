@@ -14,9 +14,9 @@ spring:
 
   # ===== BASE DE DATOS POSTGRESQL =====
   datasource:
-    url: jdbc:postgresql://localhost:5433/pedidos_db
-    username: postgres
-    password: ${DB_PASSWORD:admin} # Usa variable de entorno en producción
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/pedidos_db}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:admin}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
@@ -77,9 +77,7 @@ catalogo:
 
 # ===== SEGURIDAD JWT =====
 jwt:
-  secret: ${JWT_SECRET_KEY:c2VjcmV0b19zdXBlcl9segdyb19wYXJhX2Rlc2YXJyb2xsb19lbiVsYWN1bA==}
-  # IMPORTANTE: En producción, SIEMPRE usa variable de entorno
-  # export JWT_SECRET_KEY="tu_secret_real_super_largo"
+  secret: ${JWT_SECRET_KEY}
 
 # ===== RESILIENCE4J =====
 resilience4j:
@@ -237,7 +235,7 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
-  # ✅ PATTERN CON TRACE IDs HABILITADO
+  # PATTERN CON TRACE IDs HABILITADO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [${spring.application.name:},%X{traceId:-},%X{spanId:-}] %logger{36} - %msg%n"
 

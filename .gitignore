@@ -30,3 +30,5 @@ coverage/
 # Ignoramos los datos de las BD para no subirlos a GitHub
 docker/data/
 **/data/
+.env
+docker/.env
