@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Inicializa los topics de Kafka para el entorno local del proyecto.
-# Este script se debe ejecutar después de que el broker kafka-broker-1 esté disponible.
+# Este script se debe ejecutar despues de que el broker kafka-broker-1 este disponible.
 
 KAFKA_BOOTSTRAP_SERVER="kafka-broker-1:9092"
 
