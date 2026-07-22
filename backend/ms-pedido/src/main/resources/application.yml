@@ -43,6 +43,12 @@ spring:
     uri: ${SPRING_DATA_MONGODB_URI:mongodb://localhost:27018/pedido-mongo-db}
     auto-index-creation: true
 
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP_ID:ms-pedido-group}
+      auto-offset-reset: ${KAFKA_AUTO_OFFSET_RESET:earliest}
+
   # ===== CACHE CON CAFFEINE =====
   cache:
     type: caffeine

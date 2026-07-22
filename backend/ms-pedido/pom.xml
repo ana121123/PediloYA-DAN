@@ -37,6 +37,11 @@
 			<artifactId>spring-webflux</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka</artifactId>
+		</dependency>
+
 		<!-- Cliente Eureka: para que este MS se registre en el discovery server -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
