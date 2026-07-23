@@ -24,6 +24,7 @@ import com.seminario.ms_pedido.dto.PedidoListadoDTO;
 import com.seminario.ms_pedido.dto.PedidoPendienteCalificarDTO;
 import com.seminario.ms_pedido.dto.PedidoResponseDTO;
 import com.seminario.ms_pedido.dto.PedidoVendedorResponseDTO;
+import com.seminario.ms_pedido.dto.VendedorResumidoDTO;
 import com.seminario.ms_pedido.exception.RequestException;
 import com.seminario.ms_pedido.mapper.ClienteMapper;
 import com.seminario.ms_pedido.mapper.PedidoMapper;
@@ -33,7 +34,6 @@ import com.seminario.ms_pedido.model.Direccion;
 import com.seminario.ms_pedido.model.EstadoPedido;
 import com.seminario.ms_pedido.model.Pedido;
 import com.seminario.ms_pedido.repository.PedidoRepository;
-import com.seminario.ms_pedido.dto.VendedorResumidoDTO;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
