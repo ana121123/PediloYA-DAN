@@ -18,7 +18,6 @@ import com.seminario.ms_pedido.dto.eventos_kafka.PagoProcesadoEvent;
 import com.seminario.ms_pedido.dto.eventos_kafka.PagoConfirmadoEvent;
 import com.seminario.ms_pedido.dto.eventos_kafka.PedidoCreadoEvent;
 import com.seminario.ms_pedido.kafka.producers.KafkaEventProducer;
-import com.seminario.ms_pedido.model.EstadoPedido;
 import com.seminario.ms_pedido.service.PedidoService;
 
 import lombok.RequiredArgsConstructor;
@@ -72,6 +71,7 @@ public class PedidoKafkaListener {
     @KafkaListener(
         groupId = "ms-pedido-checkout-group",
         topics = "checkout-iniciado",
+        containerFactory = "checkoutIniciadoKafkaListenerContainerFactory",
         concurrency = "2"  // 2 threads en paralelo
     )
     @Retryable(
@@ -149,6 +149,7 @@ public class PedidoKafkaListener {
     @KafkaListener(
         groupId = "ms-pedido-envio-group",
         topics = "envio-a-confirmar",
+        containerFactory = "envioAConfirmarKafkaListenerContainerFactory",
         concurrency = "2"
     )
     @Retryable(
@@ -227,6 +228,7 @@ public class PedidoKafkaListener {
     @KafkaListener(
         groupId = "ms-pedido-pago-group",
         topics = "pago-confirmado",
+        containerFactory = "pagoConfirmadoKafkaListenerContainerFactory",
         concurrency = "2"
     )
     @Retryable(
@@ -296,6 +298,7 @@ public class PedidoKafkaListener {
     @KafkaListener(
         groupId = "ms-pedido-estado-group",
         topics = "cambiar-estado-pedido",
+        containerFactory = "cambiarEstadoPedidoKafkaListenerContainerFactory",
         concurrency = "2"
     )
     @Retryable(

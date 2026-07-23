@@ -23,8 +23,11 @@ import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
-import org.springframework.messaging.Message;
 
+import com.seminario.ms_pedido.dto.eventos_kafka.CambiarEstadoPedidoEvent;
+import com.seminario.ms_pedido.dto.eventos_kafka.CheckoutIniadoEvent;
+import com.seminario.ms_pedido.dto.eventos_kafka.EnvioAConfirmarEvent;
+import com.seminario.ms_pedido.dto.eventos_kafka.PagoConfirmadoEvent;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -113,8 +116,7 @@ public class KafkaConfig {
      * - Offset: "earliest" para reprocessar si es necesario
      * - Batching: Procesa múltiples mensajes
      */
-    @Bean
-    public ConsumerFactory<String, Object> consumerFactory() {
+    private <T> ConsumerFactory<String, T> consumerFactory(Class<T> eventType) {
         Map<String, Object> props = new HashMap<>();
         
         // === Broker Configuration ===
@@ -127,7 +129,7 @@ public class KafkaConfig {
         props.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class.getName());
         
         // === JSON Configuration ===
-        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "com.seminario.ms_pedido.dto.kafka.CheckoutIniadoEvent");
+        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, eventType.getName());
         props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");  // Permitir todos los packages
         props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
         
@@ -153,11 +155,10 @@ public class KafkaConfig {
      * - AckMode: MANUAL para confirmar solo después de procesar
      * - ErrorHandler: Manejo robusto de excepciones
      */
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory(
-            ConsumerFactory<String, Object> consumerFactory) {
-        
-        ConcurrentKafkaListenerContainerFactory<String, Object> factory =
+    private <T> ConcurrentKafkaListenerContainerFactory<String, T> kafkaListenerContainerFactory(
+            ConsumerFactory<String, T> consumerFactory) {
+
+        ConcurrentKafkaListenerContainerFactory<String, T> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         
         // === Consumer & Concurrency ===
@@ -176,6 +177,26 @@ public class KafkaConfig {
         factory.setBatchListener(false);  // Procesa mensaje a mensaje (no en lotes)
         
         return factory;
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, CheckoutIniadoEvent> checkoutIniciadoKafkaListenerContainerFactory() {
+        return kafkaListenerContainerFactory(consumerFactory(CheckoutIniadoEvent.class));
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, EnvioAConfirmarEvent> envioAConfirmarKafkaListenerContainerFactory() {
+        return kafkaListenerContainerFactory(consumerFactory(EnvioAConfirmarEvent.class));
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, PagoConfirmadoEvent> pagoConfirmadoKafkaListenerContainerFactory() {
+        return kafkaListenerContainerFactory(consumerFactory(PagoConfirmadoEvent.class));
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, CambiarEstadoPedidoEvent> cambiarEstadoPedidoKafkaListenerContainerFactory() {
+        return kafkaListenerContainerFactory(consumerFactory(CambiarEstadoPedidoEvent.class));
     }
 
     /**
