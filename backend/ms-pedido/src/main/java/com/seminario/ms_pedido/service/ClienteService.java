@@ -3,7 +3,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import com.seminario.ms_pedido.client.UsuarioClient;
 import com.seminario.ms_pedido.dto.ClienteRequestDTO;
 import com.seminario.ms_pedido.dto.ClienteResponseDTO;
 import com.seminario.ms_pedido.dto.eventos_ms_usuarios.ClienteRegistradoEvent;
@@ -23,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ClienteService {
     private final ClienteRepository clienteRepository;
     private final ClienteMapper clienteMapper;
-    private final UsuarioClient usuarioClient;
+    private final UsuarioService usuarioService;
     
     public void registrarCliente(ClienteRegistradoEvent cliente) {
         Cliente clienteEntity = clienteMapper.toEntity(cliente);
@@ -64,7 +63,7 @@ public class ClienteService {
         //Se envía la actualización a ms-usuarios para que actualice telefono, nombre y apellido del usuario
         ClienteRequestDTO respuestaUsuario;
         try {
-            respuestaUsuario = usuarioClient.actualizarCliente(clienteRequestDTO);
+            respuestaUsuario = usuarioService.actualizarCliente(clienteRequestDTO);
         } catch (Exception e) {
             String error = e.getMessage();
             throw new RequestException("US",2, HttpStatus.BAD_REQUEST, error);

@@ -5,7 +5,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.seminario.ms_pedido.client.UsuarioClient;
 import com.seminario.ms_pedido.dto.DireccionRequestDTO;
 import com.seminario.ms_pedido.dto.DireccionResponseDTO;
 import com.seminario.ms_pedido.exception.RequestException;
@@ -26,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 public class DireccionService {
     private final DireccionRepository direccionRepository;
     private final ClienteRepository clienteRepository;
-    private final UsuarioClient usuarioClient;
+    private final UsuarioService usuarioService;
     private final DireccionMapper direccionMapper;
     private final ClienteService clienteService;
 
@@ -36,7 +35,7 @@ public class DireccionService {
        
         String clienteId = cliente.getId();
 
-        DireccionResponseDTO direccionValidada = usuarioClient.buscarDatosDireccion(clienteId, dto);
+        DireccionResponseDTO direccionValidada = usuarioService.buscarDatosDireccion(dto, clienteId);
 
         Direccion nuevaDireccion = direccionMapper.toEntity(direccionValidada);
        
@@ -59,7 +58,7 @@ public class DireccionService {
         }
 
         try{
-            usuarioClient.eliminarDireccion(idDireccion);
+            usuarioService.eliminarDireccion(idDireccion);
             direccion.setEstado(EstadoDireccion.INACTIVO);
             direccionRepository.save(direccion);
 

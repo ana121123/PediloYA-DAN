@@ -5,24 +5,24 @@ import java.util.List;
 
 import org.springframework.stereotype.Component; 
 
-import com.seminario.ms_pedido.client.CatalogoClient;
 import com.seminario.ms_pedido.dto.CarritoResponseDTO;
 import com.seminario.ms_pedido.dto.ItemCarritoResponseDTO;
 import com.seminario.ms_pedido.dto.ProductoResumidoDTO;
 import com.seminario.ms_pedido.dto.VendedorResumidoDTO;
 import com.seminario.ms_pedido.model.Carrito;
+import com.seminario.ms_pedido.service.CatalogoService;
 
 import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
 public class CarritoMapper {
-    private final CatalogoClient catalogoClient;
+    private final CatalogoService catalogoService;
 
     public CarritoResponseDTO toResponseDTO(Carrito carrito) {
         List<ItemCarritoResponseDTO> items = carrito.getDetallesCarrito().stream()
             .map(detalle -> {
-                ProductoResumidoDTO prod = catalogoClient.buscarProducto(detalle.getProductoId(), carrito.getVendedorId());
+                ProductoResumidoDTO prod = catalogoService.buscarProducto(detalle.getProductoId(), carrito.getVendedorId());
                 
                 return ItemCarritoResponseDTO.builder()
                     .idItem(detalle.getIdItem())
@@ -37,7 +37,7 @@ public class CarritoMapper {
             }).toList();
 
         
-        VendedorResumidoDTO datosVendedor = catalogoClient.obtenerDatosVendedor(carrito.getVendedorId());
+        VendedorResumidoDTO datosVendedor = catalogoService.obtenerDatosVendedor(carrito.getVendedorId());
 
         return CarritoResponseDTO.builder()
             .id(carrito.getId())

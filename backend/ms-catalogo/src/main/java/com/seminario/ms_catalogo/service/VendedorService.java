@@ -14,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.seminario.ms_catalogo.client.UsuarioClient;
 import com.seminario.ms_catalogo.dto.ProductoRequestDTO;
 import com.seminario.ms_catalogo.dto.ProductoResponseBusquedaDTO;
 import com.seminario.ms_catalogo.dto.ProductoResponseDTO;
@@ -50,7 +49,7 @@ public class VendedorService {
     private final ProductoMapper productoMapper;
     private final DireccionMapper direccionMapper;
     private final VendedorMapper vendedorMapper;
-    private final UsuarioClient usuarioClient;
+    private final UsuarioService usuarioService;
     
 
     /*public VendedorResponseDTO updateVendedorConDatosLocales(Vendedor vendedor) {
@@ -140,7 +139,7 @@ public class VendedorService {
         VendedorRegistradoEvent respuestaUsuario;
         try {
             // Asumiendo que usuarioClient devuelve VendedorRegistradoEvent
-            respuestaUsuario = usuarioClient.actualizarVendedor(guardado);
+            respuestaUsuario = usuarioService.actualizarVendedor(guardado);
         } catch (Exception e) {
             String error = e.getMessage();
             throw new RequestException("US", 2, HttpStatus.BAD_REQUEST, error);

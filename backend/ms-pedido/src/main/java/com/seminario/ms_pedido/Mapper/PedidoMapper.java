@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import com.seminario.ms_pedido.client.CatalogoClient;
 import com.seminario.ms_pedido.dto.ClienteResponseDTO;
 import com.seminario.ms_pedido.dto.PedidoDetalleDTO;
 import com.seminario.ms_pedido.dto.PedidoListadoDTO;
@@ -12,6 +11,7 @@ import com.seminario.ms_pedido.dto.PedidoResponseDTO;
 import com.seminario.ms_pedido.dto.PedidoVendedorResponseDTO;
 import com.seminario.ms_pedido.dto.VendedorResumidoDTO;
 import com.seminario.ms_pedido.model.Pedido;
+import com.seminario.ms_pedido.service.CatalogoService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 public class PedidoMapper {
     private final DetallePedidoMapper detallePedidoMapper;
     private final DireccionMapper direccionMapper;
-    private final CatalogoClient catalogoClient;
+    private final CatalogoService catalogoService;
 
     public PedidoResponseDTO toResponseDTO(Pedido pedido) {
         if (pedido == null) return null;
@@ -90,7 +90,7 @@ public class PedidoMapper {
 
    // Método para obtener datos del vendedor desde el ms-catalogo ([0] nombre del local, [1] logo) 
     public VendedorResumidoDTO obtenerDatosVendedor(String vendedorId) {
-        return catalogoClient.obtenerDatosVendedor(vendedorId);
+        return catalogoService.obtenerDatosVendedor(vendedorId);
     }
 
 

@@ -14,8 +14,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.seminario.ms_pedido.client.CatalogoClient;
-import com.seminario.ms_pedido.client.UsuarioClient;
 import com.seminario.ms_pedido.dto.CalificacionVendedorRequestDTO;
 import com.seminario.ms_pedido.dto.CarritoResponseDTO;
 import com.seminario.ms_pedido.dto.ConfirmarEnvioRequestDTO;
@@ -48,16 +46,16 @@ public class PedidoService {
     private final ClienteService clienteService;
     private final PedidoMapper pedidoMapper;
     private final ClienteMapper clienteMapper;
-    private final CatalogoClient catalogoClient;
-    private final UsuarioClient usuarioClient;
+    private final CatalogoService catalogoService;
+    private final UsuarioService usuarioService;
     private final NotificacionService notificacionService;
 
     public BigDecimal calcularCostoEnvio(String idVendedor, String idDireccionCliente, Authentication authentication) {
         //Se busca el id del vendedor que pertenece a la base de datos de usuarios
-        String idVendedorUsuario = catalogoClient.obtenerIdUsuarioPorVendedorId(idVendedor);
+        String idVendedorUsuario = catalogoService.obtenerIdUsuarioPorVendedorId(idVendedor);
         System.out.println("ID Vendedor Usuario: " + idVendedorUsuario);
 
-        Double distancia = usuarioClient.calcularDistanciaEntreDirecciones(idVendedorUsuario, idDireccionCliente);
+        Double distancia = usuarioService.calcularDistanciaEntreDirecciones(idVendedorUsuario, idDireccionCliente);
         System.out.println("Distancia calculada: " + distancia);
 
         // Cálculo basado en precio por km
@@ -220,7 +218,7 @@ public class PedidoService {
         pedidoRepository.save(pedido);
 
         try {
-            String emailVendedor = catalogoClient.obtenerEmailPorVendedorId(pedido.getVendedorId());
+            String emailVendedor = catalogoService.obtenerEmailPorVendedorId(pedido.getVendedorId());
 
             notificacionService.crearYEnviarNotificacion(
                 emailVendedor,
@@ -254,7 +252,7 @@ public class PedidoService {
 
     public Map<String, Long> obtenerContadoresVendedor(Authentication auth) {
         String emailVendedor = auth.getName();
-        String vendedorId = catalogoClient.obtenerIdPorEmail(emailVendedor);
+        String vendedorId = catalogoService.obtenerIdPorEmail(emailVendedor);
         
         LocalDateTime inicioDia = LocalDate.now().atStartOfDay();
         LocalDateTime finDia = LocalDate.now().atTime(LocalTime.MAX); 
@@ -275,7 +273,7 @@ public class PedidoService {
 
     public List<PedidoVendedorResponseDTO> listarPedidosVendedor(Authentication auth, LocalDate inicio, LocalDate fin, EstadoPedido estado) {
         String emailVendedor = auth.getName();
-        String vendedorId = catalogoClient.obtenerIdPorEmail(emailVendedor);
+        String vendedorId = catalogoService.obtenerIdPorEmail(emailVendedor);
 
         // Si no hay fechas, por defecto es HOY
         LocalDateTime start = (inicio != null) ? inicio.atStartOfDay() : LocalDate.now().atStartOfDay();
@@ -303,7 +301,7 @@ public class PedidoService {
     @Transactional
     public PedidoResponseDTO actualizarEstado(String pedidoId, EstadoPedido nuevoEstado, Authentication auth) {
         String emailVendedor = auth.getName(); 
-        String vendedorIdAutenticado = catalogoClient.obtenerIdPorEmail(emailVendedor);
+        String vendedorIdAutenticado = catalogoService.obtenerIdPorEmail(emailVendedor);
 
         Pedido pedido = pedidoRepository.findById(pedidoId)
                 .orElseThrow(() -> new RequestException("PED", 404, HttpStatus.NOT_FOUND, "Pedido no encontrado"));
@@ -348,7 +346,7 @@ public class PedidoService {
         pedidoRepository.save(pedido);
 
         try {
-            catalogoClient.actualizarCalificacionVendedor(
+            catalogoService.actualizarCalificacionVendedor(
                 pedido.getVendedorId(),
                 new CalificacionVendedorRequestDTO(puntuacion)
             );
@@ -364,7 +362,7 @@ public class PedidoService {
 
         return pedidos.stream()
                 .map(p -> {
-                    VendedorResumidoDTO vendedor = catalogoClient.obtenerDatosVendedor(p.getVendedorId());
+                    VendedorResumidoDTO vendedor = catalogoService.obtenerDatosVendedor(p.getVendedorId());
                     return new PedidoPendienteCalificarDTO(
                             p.getId(),
                             p.getVendedorId(),

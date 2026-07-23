@@ -2,7 +2,6 @@ package com.seminario.ms_catalogo.service;
 
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
 
@@ -53,7 +52,7 @@ public class UsuarioService {
     }
 
     //Fallback method cuando el circuit breaker está abierto
-    public ResponseEntity<VendedorRegistradoEvent> actualizarVendedorFallback(VendedorRegistradoEvent vendedorRegistradoEvent, Exception exception) {
+    public VendedorRegistradoEvent actualizarVendedorFallback(VendedorRegistradoEvent vendedorRegistradoEvent, Exception exception) {
         if (exception instanceof RequestException requestException) {
             throw requestException;
         }

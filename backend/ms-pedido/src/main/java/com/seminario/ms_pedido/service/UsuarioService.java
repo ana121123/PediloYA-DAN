@@ -7,6 +7,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seminario.ms_pedido.client.UsuarioClient;
+import com.seminario.ms_pedido.dto.ClienteRequestDTO;
 import com.seminario.ms_pedido.dto.DireccionRequestDTO;
 import com.seminario.ms_pedido.dto.DireccionResponseDTO;
 import com.seminario.ms_pedido.exception.RequestException;
@@ -146,6 +147,31 @@ public class UsuarioService {
         
         throw new RequestException("US", 503, HttpStatus.SERVICE_UNAVAILABLE, 
             "El servicio de usuarios no está disponible para calcular la distancia.");
+    }
+    @CircuitBreaker(name = "usuarioClient", fallbackMethod = "actualizarClienteFallback")
+    @Retry(name = "usuarioClient")
+    public ClienteRequestDTO actualizarCliente(ClienteRequestDTO clienteRequestDTO) {
+        try {
+            return usuarioClient.actualizarCliente(clienteRequestDTO);
+
+        } catch (HttpStatusCodeException e) {
+            log.error("Error HTTP desde ms-usuarios al actualizar cliente: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
+            throw new RequestException("USU", e.getStatusCode().value(), (HttpStatus) e.getStatusCode(), e.getResponseBodyAsString());
+
+        } catch (Exception e) {
+            throw new RequestException("USU", 503, HttpStatus.SERVICE_UNAVAILABLE, "El servicio de usuarios no responde.");
+        }
+    }
+
+    public ClienteRequestDTO actualizarClienteFallback(ClienteRequestDTO clienteRequestDTO, Throwable t) {
+        log.error("Fallback activado para actualizarCliente. Motivo: {}", t.getMessage());
+
+        if (t instanceof RequestException requestException) {
+            throw requestException;
+        }
+
+        throw new RequestException("US", 503, HttpStatus.SERVICE_UNAVAILABLE,
+            "El servicio de usuarios no esta disponible para actualizar el cliente.");
     }
     
 }

@@ -1,7 +1,6 @@
 package com.seminario.ms_usuarios.service;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import com.seminario.ms_usuarios.client.CatalogoClient;
@@ -35,7 +34,7 @@ public class CatalogoService {
     }
 
     //Fallback method cuando el circuit breaker está abierto
-    public ResponseEntity<Void> registrarVendedorFallback(VendedorRegistradoEvent evento, Exception exception) {
+    public void registrarVendedorFallback(VendedorRegistradoEvent evento, Exception exception) {
         //System.out.println(">>> ERROR REAL OCULTO: " + exception.getMessage());
         exception.printStackTrace();
         

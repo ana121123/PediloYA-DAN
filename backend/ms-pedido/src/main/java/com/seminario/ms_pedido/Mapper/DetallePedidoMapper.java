@@ -5,16 +5,16 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import com.seminario.ms_pedido.client.CatalogoClient;
 import com.seminario.ms_pedido.dto.DetallePedidoDTO;
 import com.seminario.ms_pedido.model.DetallePedido;
+import com.seminario.ms_pedido.service.CatalogoService;
 
 import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
 public class DetallePedidoMapper {
-    private final CatalogoClient catalogoClient;
+    private final CatalogoService catalogoService;
 
     public DetallePedidoDTO toDTO(DetallePedido detalle) {
        List<String> datosProducto = obtenerDatosProducto(detalle.getIdProducto(), detalle.getPedido().getVendedorId());
@@ -33,6 +33,6 @@ public class DetallePedidoMapper {
 
     // Método para obtener datos del producto desde el ms-catalogo ([0] nombre del producto, [1] imagen)
     public List<String> obtenerDatosProducto(String productoId, String vendedorId) {
-        return catalogoClient.obtenerDatosProducto(productoId, vendedorId);
+        return catalogoService.obtenerDatosProducto(productoId, vendedorId);
     }
 }

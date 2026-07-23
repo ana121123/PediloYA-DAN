@@ -5,8 +5,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.seminario.ms_usuarios.client.CatalogoClient;
-import com.seminario.ms_usuarios.client.PedidoClient;
 import com.seminario.ms_usuarios.dto.ClienteRequestDTO;
 import com.seminario.ms_usuarios.dto.ClienteResponseDTO;
 import com.seminario.ms_usuarios.dto.DireccionResponseDTO;
@@ -39,8 +37,8 @@ public class AuthService {
     private final ClienteMapper clienteMapper;
     private final VendedorMapper vendedorMapper;
     private final DireccionService direccionService;
-    private final CatalogoClient catalogoClient;
-    private final PedidoClient pedidoClient;
+    private final CatalogoService catalogoService;
+    private final PedidoService pedidoService;
 
 
 
@@ -82,7 +80,7 @@ public class AuthService {
 
         ClienteResponseDTO response = clienteMapper.toResponse(guardado);
         
-        pedidoClient.registrarCliente(clienteMapper.toClienteRegistrado(guardado));
+        pedidoService.registrarCliente(clienteMapper.toClienteRegistrado(guardado));
 
         return response;
     }
@@ -107,7 +105,7 @@ public class AuthService {
         VendedorRegistradoEvent evento = vendedorMapper.toVendedorRegistrado(vendedorGuardado, direccionGuardada);
 
         //mensaje a catalogo
-        catalogoClient.registrarVendedor(evento);
+        catalogoService.registrarVendedor(evento);
 
         return vendedorMapper.toResponse(vendedorGuardado, direccionGuardada); 
     }

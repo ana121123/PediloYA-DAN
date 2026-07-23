@@ -73,6 +73,14 @@ kafka-topics --bootstrap-server "$KAFKA_BOOTSTRAP_SERVER" --create \
   --replication-factor 1 \
   --config retention.ms=604800000
 
+echo "Creando topic: pago-procesado"
+kafka-topics --bootstrap-server "$KAFKA_BOOTSTRAP_SERVER" --create \
+  --if-not-exists \
+  --topic pago-procesado \
+  --partitions 2 \
+  --replication-factor 1 \
+  --config retention.ms=2592000000
+
 echo ""
 echo "========================================="
 echo "✓ Topics creados exitosamente"

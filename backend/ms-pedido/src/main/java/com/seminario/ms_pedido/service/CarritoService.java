@@ -10,7 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.seminario.ms_pedido.client.CatalogoClient;
 import com.seminario.ms_pedido.dto.CarritoResponseDTO;
 import com.seminario.ms_pedido.dto.ItemCarritoRequestDTO;
 import com.seminario.ms_pedido.dto.ProductoResumidoDTO;
@@ -32,7 +31,7 @@ public class CarritoService {
     private final CarritoRepository carritoRepository;
     private final ClienteRepository clienteRepository;
     private final CarritoMapper carritoMapper;
-    private final CatalogoClient catalogoClient;
+    private final CatalogoService catalogoService;
 
     public CarritoResponseDTO agregarOModificarItem(String email, String vendedorId, String productoId, Integer cantidad, String observaciones) {
         // 1. Obtener el cliente desde PostgreSQL usando el email del token
@@ -49,7 +48,7 @@ public class CarritoService {
             });
 
         // 3. Buscar el producto en el ms-catalogo para tener precio actualizado
-        ProductoResumidoDTO productoDTO = catalogoClient.buscarProducto(productoId, vendedorId);
+        ProductoResumidoDTO productoDTO = catalogoService.buscarProducto(productoId, vendedorId);
 
         // 4. Lógica de ítems
         // Buscamos un detalle que coincida en ID Y en la misma observación
@@ -103,7 +102,7 @@ public class CarritoService {
         CarritoResponseDTO dto = carritoMapper.toResponseDTO(carrito);
         
         try {
-            VendedorResumidoDTO infoVendedor = catalogoClient.obtenerDatosVendedor(carrito.getVendedorId());
+            VendedorResumidoDTO infoVendedor = catalogoService.obtenerDatosVendedor(carrito.getVendedorId());
             
             dto.setNombreVendedor(infoVendedor.getNombreNegocio());
             dto.setRealizaEnvios(infoVendedor.getRealizaEnvios());

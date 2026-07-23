@@ -259,7 +259,7 @@ resilience4j:
         baseConfig: default
 
       # Circuit Breaker para MS-Usuarios
-      usuarios:
+      usuarioClient:
         baseConfig: default
 
 # ===== ACTUATOR & OBSERVABILIDAD =====
