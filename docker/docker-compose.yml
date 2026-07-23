@@ -1,4 +1,21 @@
 services:
+  # --- FRONTEND ---
+  frontend:
+    build:
+      context: ../frontend
+      args:
+        NEXT_PUBLIC_GATEWAY_URL: http://api-gateway:8090
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_GATEWAY_URL=http://api-gateway:8090
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    networks:
+      - app-network
+
   # --- EUREKA (debe levantar primero) ---
   eureka-server:
     build: ../backend/eureka-server
@@ -10,10 +27,11 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8761/ >/dev/null 2>&1"]
+      test: ["CMD-SHELL", "ps aux | grep 'java -jar app.jar' | grep -v grep || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 30s
 
   # --- API GATEWAY ---
   api-gateway:
@@ -29,10 +47,11 @@ services:
       eureka-server:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "ps | grep 'java -jar app.jar' | grep -v grep"]
+      test: ["CMD-SHELL", "ps aux | grep 'java -jar app.jar' | grep -v grep || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 30s
 
   # --- MS USUARIOS ---
   ms-usuarios:
@@ -57,10 +76,11 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/usuariosMs/swagger-ui.html >/dev/null 2>&1"]
+      test: ["CMD-SHELL", "ps aux | grep 'java -jar app.jar' | grep -v grep || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 30s
 
   # --- MS CATALOGO ---
   ms-catalogo:
@@ -84,10 +104,11 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/catalogoMs/swagger-ui.html >/dev/null 2>&1"]
+      test: ["CMD-SHELL", "ps aux | grep 'java -jar app.jar' | grep -v grep || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 30s
 
   # --- MS PEDIDO (usa postgres + mongo) ---
   ms-pedido:
@@ -115,10 +136,11 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/pedidoMs/swagger-ui.html >/dev/null 2>&1"]
+      test: ["CMD-SHELL", "ps aux | grep 'java -jar app.jar' | grep -v grep || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 30s
 
   # --- MS PAGO ---
   ms-pago:
@@ -145,10 +167,11 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8083/pagoMs/swagger-ui.html >/dev/null 2>&1"]
+      test: ["CMD-SHELL", "ps aux | grep 'java -jar app.jar' | grep -v grep || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 30s
 
   # --- MS IA ---
   ms-ia:
@@ -169,10 +192,11 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8085/iaMs/swagger-ui.html >/dev/null 2>&1"]
+      test: ["CMD-SHELL", "ps aux | grep 'java -jar app.jar' | grep -v grep || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 30s
 
   # --- BASE DE DATOS USUARIOS (SQL) ---
   usuario-db:
@@ -181,7 +205,7 @@ services:
     ports:
       - "5431:5432"
     environment:
-      - POSTGRES_DB=usuarios_db # La BD se crea sola con este nombre
+      - POSTGRES_DB=usuarios_db
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=admin
     volumes:
@@ -189,10 +213,11 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d usuarios_db"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d usuarios_db || exit 1"]
       interval: 5s
-      timeout: 5s
-      retries: 5
+      timeout: 10s
+      retries: 30
+      start_period: 15s
 
   # --- BASE DE DATOS CATÁLOGO (NoSQL) ---
   catalogo-db:
@@ -205,7 +230,7 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "mongosh --quiet --eval \"db.adminCommand('ping')\" localhost:27017/catalogo_db >/dev/null"]
+      test: ["CMD-SHELL", "mongosh --quiet --eval \"db.adminCommand('ping')\" localhost >/dev/null 2>&1 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -218,7 +243,7 @@ services:
     ports:
       - "5433:5432"
     environment:
-      - POSTGRES_DB=pedidos_db # La BD se crea sola con este nombre
+      - POSTGRES_DB=pedidos_db
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=admin
     volumes:
@@ -226,10 +251,11 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d pedidos_db"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d pedidos_db || exit 1"]
       interval: 5s
-      timeout: 5s
-      retries: 5
+      timeout: 10s
+      retries: 30
+      start_period: 15s
 
   # --- BASE DE DATOS MS-PEDIDO (NoSQL) ---
   pedido-mongo-db:
@@ -242,7 +268,7 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "mongosh --quiet --eval \"db.adminCommand('ping')\" localhost:27017/pedido_db >/dev/null"]
+      test: ["CMD-SHELL", "mongosh --quiet --eval \"db.adminCommand('ping')\" localhost >/dev/null 2>&1 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -263,10 +289,11 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d pago_db"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d pago_db || exit 1"]
       interval: 5s
-      timeout: 5s
-      retries: 5
+      timeout: 10s
+      retries: 30
+      start_period: 15s
 
   # --- PROMETHEUS ---
   prometheus-server:
@@ -282,6 +309,7 @@ services:
   # --- GRAFANA ---
   grafana:
     image: grafana/grafana
+    container_name: grafana
     ports:
       - "3001:3000"
     volumes:
@@ -290,6 +318,7 @@ services:
       - prometheus-server
     networks:
       - app-network
+
   # --- LOKI ---
   loki:
     image: grafana/loki:latest
@@ -316,7 +345,6 @@ services:
     networks:
       - app-network
 
-
   # ==================== ZOOKEEPER ====================
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
@@ -330,7 +358,7 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8080/commands/ruok | grep -q '\"error\":null' || exit 1"]
+      test: ["CMD-SHELL", "echo ruok | nc localhost 2181 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -349,32 +377,31 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker-1:9092,PLAINTEXT_HOST://localhost:19092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1  # EN DEV. En PROD: 3
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1      # EN DEV. En PROD: 2
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1  # EN DEV. En PROD: 3
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"    # fuerza creación manual
-      KAFKA_LOG_RETENTION_HOURS: 168               # 7 días
-      KAFKA_LOG_SEGMENT_BYTES: 1073741824          # 1GB
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_LOG_RETENTION_HOURS: 168
+      KAFKA_LOG_SEGMENT_BYTES: 1073741824
+      KAFKA_HEAP_OPTS: "-Xmx512M -Xms512M"
+      KAFKA_LOG4J_ROOT_LOGLEVEL: INFO
+      KAFKA_TOOLS_LOG4J_LOGLEVEL: ERROR
     ports:
       - "19092:9092"
       - "9092:9092"
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "kafka-broker-api-versions.sh --bootstrap-server localhost:9092 || exit 1"]
+      test: ["CMD-SHELL", "nc -z localhost 9092 || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 30s
+      retries: 10
+      start_period: 45s
 
-  # NOTA: En PROD añadir kafka-broker-2 y kafka-broker-3 con BROKER_ID: 2,3
-
-  # ==================== KAFKA UI (OPCIONAL, RECOMENDADO) ====================
+  # ==================== KAFKA UI ====================
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui
-    depends_on:
-      - kafka-broker-1
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-broker-1:9092
@@ -392,7 +419,7 @@ services:
       kafka-broker-1:
         condition: service_healthy
     volumes:
-      - ./kafka/scripts/init-topics.sh:/scripts/init-topics.sh
+      - ../backend/kafka/scripts/init-topics.sh:/scripts/init-topics.sh
     entrypoint: ["/bin/bash"]
     command: ["/scripts/init-topics.sh"]
     networks:
@@ -401,7 +428,7 @@ services:
 networks:
   app-network:
     driver: bridge
-    
+
 volumes:
   kafka-data:
   zookeeper-data:

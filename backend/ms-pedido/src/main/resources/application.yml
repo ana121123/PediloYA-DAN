@@ -43,6 +43,147 @@ spring:
     uri: ${SPRING_DATA_MONGODB_URI:mongodb://localhost:27018/pedido-mongo-db}
     auto-index-creation: true
 
+  # ============================================================
+  # CONFIGURACIÓN KAFKA PARA MS-PEDIDO
+  # ============================================================
+
+  kafka:
+    # === Bootstrap Servers (puntos de entrada al cluster) ===
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    
+    # === PRODUCER CONFIGURATION ===
+    # Define cómo publicar eventos a Kafka
+    producer:
+      bootstrap-servers: ${spring.kafka.bootstrap-servers}
+      
+      # Serialización
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      
+      # Garantías de entrega (acks=all es más lento pero 100% seguro)
+      acks: all                         # Espera confirmación de todos los replicas
+      retries: 3                        # Reintenta 3 veces si falla
+      
+      # Batching: agrupa mensajes para mejor rendimiento
+      batch-size: 16384               # 16KB de datos
+      linger-ms: 10                   # Espera 10ms para agrupar
+      
+      # Prevención de duplicados
+      enable-idempotence: true         # Garantiza "exactly once"
+      
+      # Configuración de ordenamiento
+      max-in-flight-requests-per-connection: 1  # Mantiene orden de mensajes
+      
+      properties:
+        request.timeout.ms: 30000
+        
+    # === CONSUMER CONFIGURATION ===
+    # Define cómo consumir eventos desde Kafka
+    consumer:
+      bootstrap-servers: ${spring.kafka.bootstrap-servers}
+      
+      # Group ID: identifica el consumer group para este microservicio
+      # Permite múltiples instancias sin duplicar procesamiento
+      group-id: ${spring.application.name:ms-pedido}-consumer-group
+      
+      # Deserialización
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      
+      # Configuración de offset
+      auto-offset-reset: earliest      # Si no hay offset, procesar desde el principio
+      enable-auto-commit: false        # Commit manual en listeners (para mayor control)
+      
+      # Batching
+      max-poll-records: 100            # Máximo registros a traer en cada poll
+      
+      # Timeouts
+      session-timeout-ms: 30000        # 30 segundos
+      max-poll-interval-ms: 300000     # 5 minutos
+      
+      properties:
+        # Apenas procesa datos que ya fueron confirmados (read_committed)
+        # Evita leer datos que aún están siendo procesados
+        isolation.level: read_committed
+        
+        # Configuración de ErrorHandlingDeserializer
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.json.trusted.packages: "com.seminario.*"
+        
+    # === LISTENER CONFIGURATION ===
+    # Define cómo se procesan los eventos en los @KafkaListener
+    listener:
+      # Procesar mensaje a mensaje (no en lotes)
+      type: single
+      
+      # Tiempo de espera para obtener nuevos mensajes
+      poll-timeout: 3000
+      
+      # ACK mode: MANUAL para mayor control
+      # Solo confirma offset después de procesar exitosamente
+      ack-mode: MANUAL
+      
+      # Concurrencia: número de threads que procesan mensajes en paralelo
+      concurrency: 3
+      
+    # === RETRY CONFIGURATION ===
+    # Configuración de reintentos en listeners
+    retry:
+      topic:
+        enabled: true                  # Activar retry topic
+        max:
+          attempts: 3                  # Máximo 3 intentos
+        delay:
+          ms: 5000                     # Esperar 5 segundos entre intentos
+        multiplier: 2.0                # Backoff exponencial: 5s, 10s, 20s
+        
+    # === SECURITY (si tu cluster Kafka está securizado) ===
+    # Descomenta si tu Kafka requiere autenticación
+    # security:
+    #   protocol: SASL_SSL
+    #   sasl:
+    #     mechanism: PLAIN
+    #     jaas-config: >
+    #       org.apache.kafka.common.security.plain.PlainLoginModule required
+    #       username="${KAFKA_USERNAME}"
+    #       password="${KAFKA_PASSWORD}";
+
+
+# ============================================================
+# VARIABLES DE ENTORNO PARA DOCKER-COMPOSE
+# ============================================================
+# En docker-compose.yml, sobrescribe estas variables:
+#
+# environment:
+#   KAFKA_BOOTSTRAP_SERVERS: kafka-broker-1:29092,kafka-broker-2:29092,kafka-broker-3:29092
+#   SPRING_PROFILES_ACTIVE: docker
+#
+# También puedes crear application-docker.yml con estos valores
+
+# ============================================================
+# NOTAS IMPORTANTES
+# ============================================================
+#
+# 1. AMBIENTE LOCAL (dev):
+#    - bootstrap-servers: localhost:9092
+#    - Usa un solo broker
+#    - Consumer group puede compartirse
+#
+# 2. AMBIENTE DOCKER (producción):
+#    - bootstrap-servers: kafka-broker-1:29092,kafka-broker-2:29092,kafka-broker-3:29092
+#    - Usa direcciones INTERNAS del contenedor
+#    - Cada instancia del microservicio es parte del mismo consumer group
+#
+# 3. DIRECCIONES DE BOOTSTRAP EN DOCKER:
+#    - DENTRO de Docker: kafka-broker-1:29092 (puerto interno)
+#    - FUERA de Docker:  localhost:9092 (puerto expuesto)
+#    - spring.kafka.bootstrap-servers debe usar direcciones INTERNAS
+#
+# 4. MONITORING:
+#    - Acceder a Kafka UI: http://localhost:8080
+#    - Ver topics, particiones, consumer groups
+#    - Ver lag de consumidores
+
   # ===== CACHE CON CAFFEINE =====
   cache:
     type: caffeine
@@ -234,6 +375,17 @@ logging:
     io.github.resilience4j: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+    # Kafka client logs (muy verbose)
+    org.apache.kafka.clients: WARN
+    org.apache.kafka.common: WARN
+    
+    # Spring Kafka
+    org.springframework.kafka: DEBUG       # DEBUG para ver todos los eventos
+    
+    # Tu aplicación
+    com.seminario.ms_pedido.kafka: DEBUG
+    com.seminario.ms_pedido.service: DEBUG
 
   # PATTERN CON TRACE IDs HABILITADO
   pattern:
