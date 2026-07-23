@@ -19,6 +19,8 @@ import com.mercadopago.resources.payment.Payment;
 import com.mercadopago.resources.preference.Preference;
 import com.seminario.ms_pago.client.PedidoClient;
 import com.seminario.ms_pago.dto.PedidoResponseDTO;
+import com.seminario.ms_pago.dto.eventos_kafka.PagoConfirmadoEvent;
+import com.seminario.ms_pago.kafka.producers.KafkaEventProducer;
 import com.seminario.ms_pago.model.EstadoTransaccion;
 import com.seminario.ms_pago.model.MetodoPago;
 import com.seminario.ms_pago.model.Pago;
@@ -34,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 public class PagoService {
     private final PagoRepository pagoRepository;
     private final PedidoClient pedidoClient;
+    private final KafkaEventProducer kafkaEventProducer;
 
     public Map<String, String> crearPreferencia(String pedidoId) {
         try {
@@ -150,8 +153,17 @@ public class PagoService {
 
             // 4. Si el pago actual es el aprobado, confirmar pedido
             if ("approved".equals(mpStatus)) {
-                pedidoClient.confirmarPago(pedidoId);
-                log.info("¡ÉXITO! Pedido {} pagado con ID MP: {}", pedidoId, paymentId);
+                //pedidoClient.confirmarPago(pedidoId);
+                //log.info("¡ÉXITO! Pedido {} pagado con ID MP: {}", pedidoId, paymentId);
+
+                PagoConfirmadoEvent event = PagoConfirmadoEvent.builder()
+                    .pedidoId(pedidoId)
+                    .transactionId(paymentId)
+                    .correlationId("PAY-" + paymentId)
+                    .build();
+
+                kafkaEventProducer.publishEvent("pago-confirmado", event, pedidoId);
+                log.info("Pago aprobado publicado en Kafka | Pedido: {} | ID MP: {}", pedidoId, paymentId);
             }
 
         } catch (Exception e) {
