@@ -81,6 +81,22 @@ kafka-topics --bootstrap-server "$KAFKA_BOOTSTRAP_SERVER" --create \
   --replication-factor 1 \
   --config retention.ms=2592000000
 
+echo "Creando topic: cliente-registrado"
+kafka-topics --bootstrap-server "$KAFKA_BOOTSTRAP_SERVER" --create \
+  --if-not-exists \
+  --topic cliente-registrado \
+  --partitions 2 \
+  --replication-factor 1 \
+  --config retention.ms=2592000000
+
+echo "Creando topic: vendedor-registrado"
+kafka-topics --bootstrap-server "$KAFKA_BOOTSTRAP_SERVER" --create \
+  --if-not-exists \
+  --topic vendedor-registrado \
+  --partitions 2 \
+  --replication-factor 1 \
+  --config retention.ms=2592000000
+
 echo ""
 echo "========================================="
 echo "✓ Topics creados exitosamente"

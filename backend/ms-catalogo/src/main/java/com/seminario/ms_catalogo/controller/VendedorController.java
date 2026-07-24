@@ -66,6 +66,7 @@ public class VendedorController {
         return vendedorService.updateVendedor(vendedorRequestDTO, email);
     }
 
+    /*
     //Endpoint HTTP desde ms-usuarios
     @PostMapping("/registrar")
     @Operation(summary = "Registra un nuevo vendedor. Llamado internamente por ms-usuarios")
@@ -73,6 +74,7 @@ public class VendedorController {
             vendedorService.recibirRegistroVendedor(evento);
             return ResponseEntity.status(HttpStatus.CREATED).build();
     }
+    */
 
     @GetMapping("/perfil")
     @Operation(summary = "Obtiene el perfil de un vendedor logueado")
