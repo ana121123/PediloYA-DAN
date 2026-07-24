@@ -13,7 +13,9 @@ import com.seminario.ms_usuarios.dto.LoginResponseDTO;
 import com.seminario.ms_usuarios.dto.VendedorRequestDTO;
 import com.seminario.ms_usuarios.dto.VendedorResponseDTO;
 import com.seminario.ms_usuarios.dto.eventos_ms_catalogo.VendedorRegistradoEvent;
+import com.seminario.ms_usuarios.dto.eventos_ms_pedidio.ClienteRegistradoEvent;
 import com.seminario.ms_usuarios.exception.RequestException;
+import com.seminario.ms_usuarios.kafka.producers.KafkaEventProducer;
 import com.seminario.ms_usuarios.mapper.ClienteMapper;
 import com.seminario.ms_usuarios.mapper.VendedorMapper;
 import com.seminario.ms_usuarios.model.Cliente;
@@ -37,9 +39,9 @@ public class AuthService {
     private final ClienteMapper clienteMapper;
     private final VendedorMapper vendedorMapper;
     private final DireccionService direccionService;
-    private final CatalogoService catalogoService;
-    private final PedidoService pedidoService;
-
+    //private final CatalogoService catalogoService;
+    //private final PedidoService pedidoService;
+    private final KafkaEventProducer kafkaEventProducer;
 
 
     // --- LOGIN ---
@@ -79,8 +81,13 @@ public class AuthService {
         Cliente guardado = clienteService.guardarCliente(nuevoCliente);
 
         ClienteResponseDTO response = clienteMapper.toResponse(guardado);
-        
-        pedidoService.registrarCliente(clienteMapper.toClienteRegistrado(guardado));
+
+        ClienteRegistradoEvent evento = clienteMapper.toClienteRegistrado(guardado);
+
+        //pedidoService.registrarCliente(evento);
+
+        kafkaEventProducer.publishEvent("cliente-registrado", evento, evento.getUsuarioId());
+        log.info("registro de cliente publicado en Kafka | Email: {} | ID: {}", evento.getEmail(), evento.getUsuarioId());
 
         return response;
     }
@@ -105,7 +112,9 @@ public class AuthService {
         VendedorRegistradoEvent evento = vendedorMapper.toVendedorRegistrado(vendedorGuardado, direccionGuardada);
 
         //mensaje a catalogo
-        catalogoService.registrarVendedor(evento);
+        kafkaEventProducer.publishEvent("vendedor-registrado", evento, evento.getUsuarioId());
+        log.info("registro de vendedor publicado en Kafka | Email: {} | ID: {}", evento.getEmail(), evento.getUsuarioId());
+
 
         return vendedorMapper.toResponse(vendedorGuardado, direccionGuardada); 
     }

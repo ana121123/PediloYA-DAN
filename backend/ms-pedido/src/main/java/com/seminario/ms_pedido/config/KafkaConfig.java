@@ -28,6 +28,7 @@ import com.seminario.ms_pedido.dto.eventos_kafka.CambiarEstadoPedidoEvent;
 import com.seminario.ms_pedido.dto.eventos_kafka.CheckoutIniadoEvent;
 import com.seminario.ms_pedido.dto.eventos_kafka.EnvioAConfirmarEvent;
 import com.seminario.ms_pedido.dto.eventos_kafka.PagoConfirmadoEvent;
+import com.seminario.ms_pedido.dto.eventos_ms_usuarios.ClienteRegistradoEvent;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -198,6 +199,12 @@ public class KafkaConfig {
     public ConcurrentKafkaListenerContainerFactory<String, CambiarEstadoPedidoEvent> cambiarEstadoPedidoKafkaListenerContainerFactory() {
         return kafkaListenerContainerFactory(consumerFactory(CambiarEstadoPedidoEvent.class));
     }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, ClienteRegistradoEvent> clienteRegistradoKafkaListenerContainerFactory() {
+        return kafkaListenerContainerFactory(consumerFactory(ClienteRegistradoEvent.class));
+    }
+
 
     /**
      * Error Handler: Maneja excepciones en listeners

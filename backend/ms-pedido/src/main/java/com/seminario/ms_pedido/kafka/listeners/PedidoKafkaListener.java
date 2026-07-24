@@ -17,8 +17,11 @@ import com.seminario.ms_pedido.dto.eventos_kafka.EstadoPedidoActualizadoEvent;
 import com.seminario.ms_pedido.dto.eventos_kafka.PagoProcesadoEvent;
 import com.seminario.ms_pedido.dto.eventos_kafka.PagoConfirmadoEvent;
 import com.seminario.ms_pedido.dto.eventos_kafka.PedidoCreadoEvent;
+import com.seminario.ms_pedido.dto.eventos_ms_usuarios.ClienteRegistradoEvent;
 import com.seminario.ms_pedido.kafka.producers.KafkaEventProducer;
 import com.seminario.ms_pedido.service.PedidoService;
+import com.seminario.ms_pedido.service.ClienteService;
+
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +53,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 public class PedidoKafkaListener {
 
     private final PedidoService pedidoService;
+    private final ClienteService clienteService;
     private final KafkaEventProducer kafkaProducer;
 
     // ============================================================
@@ -357,6 +361,58 @@ public class PedidoKafkaListener {
                 eventId, event.getPedidoId(), e.getMessage(), e
             );
             throw new RuntimeException("Error cambiando estado del pedido", e);
+        }
+    }
+
+    // ============================================================
+    // LISTENER 5: REGISTRAR CLIENTE (Reemplaza POST /registrar)
+    // ============================================================
+
+    /**
+     * Escucha: "cliente-registrado"
+     * 
+     * Evento de entrada: ClienteRegistradoEvent
+     */
+    @KafkaListener(
+        groupId = "ms-pedido-cliente-group",
+        topics = "cliente-registrado",
+        containerFactory = "clienteRegistradoKafkaListenerContainerFactory",
+        concurrency = "2"
+    )
+    @Retryable(
+        maxAttempts = 3,
+        backoff = @Backoff(delay = 2000, multiplier = 2.0)
+    )
+    public void handleClienteRegistrado(
+            @Payload ClienteRegistradoEvent event,
+            @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
+            @Header(KafkaHeaders.RECEIVED_PARTITION) int partition,
+            @Header(KafkaHeaders.OFFSET) long offset,
+            Acknowledgment acknowledgment) {
+
+        String eventId = generateEventId();
+        log.info(
+            "[{}] ➤ Cliente registrado | ClienteId: {} | Email: {} | Topic: {} | Partition: {} | Offset: {}",
+            eventId, event.getUsuarioId(), event.getEmail(), topic, partition, offset
+        );
+
+        try {
+            // === EJECUTAR LÓGICA DEL SERVICE ===
+            clienteService.registrarCliente(event);
+
+
+            log.info("[{}] ✓ Cliente registrado exitosamente | Email: {}", eventId, event.getEmail());
+
+            // === CONFIRMAR OFFSET ===
+            acknowledgment.acknowledge();
+            log.info("[{}] ✓ Evento procesado y confirmado", eventId);
+
+        } catch (Exception e) {
+            log.error(
+                "[{}] ✗ Error en handleClienteRegistrado | Email: {} | Error: {}",
+                eventId, event.getEmail(), e.getMessage(), e
+            );
+            throw new RuntimeException("Error procesando cliente registrado", e);
         }
     }
 
