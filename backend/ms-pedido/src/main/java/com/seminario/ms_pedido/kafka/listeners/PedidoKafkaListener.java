@@ -72,7 +72,7 @@ public class PedidoKafkaListener {
      * 
      * Respuesta: Publica "pedido-creado" con PedidoResponseDTO
      */
-    @KafkaListener(
+    /*@KafkaListener(
         groupId = "ms-pedido-checkout-group",
         topics = "checkout-iniciado",
         containerFactory = "checkoutIniciadoKafkaListenerContainerFactory",
@@ -133,7 +133,7 @@ public class PedidoKafkaListener {
             throw new RuntimeException("Error procesando checkout", e);
         }
     }
-
+*/
     // ============================================================
     // LISTENER 2: CONFIRMAR ENVÍO (Reemplaza PATCH /confirmar-envio)
     // ============================================================
@@ -150,7 +150,7 @@ public class PedidoKafkaListener {
      * 
      * Respuesta: Publica "envio-confirmado" con PedidoResponseDTO
      */
-    @KafkaListener(
+    /*@KafkaListener(
         groupId = "ms-pedido-envio-group",
         topics = "envio-a-confirmar",
         containerFactory = "envioAConfirmarKafkaListenerContainerFactory",
@@ -210,7 +210,7 @@ public class PedidoKafkaListener {
             throw new RuntimeException("Error confirmando envío", e);
         }
     }
-
+*/
     // ============================================================
     // LISTENER 3: CONFIRMAR PAGO (Reemplaza PATCH /confirmar-pago webhook)
     // ============================================================
@@ -287,7 +287,6 @@ public class PedidoKafkaListener {
     // ============================================================
     // LISTENER 4: CAMBIAR ESTADO PEDIDO (Reemplaza PATCH /{id}/estado)
     // ============================================================
-
     /**
      * Escucha: "cambiar-estado-pedido"
      * 
@@ -301,7 +300,7 @@ public class PedidoKafkaListener {
      * 
      * Respuesta: Publica "estado-pedido-actualizado" con PedidoResponseDTO
      */
-    @KafkaListener(
+   /*  @KafkaListener(
         groupId = "ms-pedido-estado-group",
         topics = "cambiar-estado-pedido",
         containerFactory = "cambiarEstadoPedidoKafkaListenerContainerFactory",
@@ -365,7 +364,7 @@ public class PedidoKafkaListener {
             throw new RuntimeException("Error cambiando estado del pedido", e);
         }
     }
-
+*/
     // ============================================================
     // LISTENER 5: REGISTRAR CLIENTE (Reemplaza POST /registrar)
     // ============================================================

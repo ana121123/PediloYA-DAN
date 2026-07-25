@@ -243,15 +243,13 @@ export default function RegistroPage() {
             body: JSON.stringify(payload)
         })
 
-        const data = await response.json();
-
-        /*const responseText = await response.text();
+        const responseText = await response.text();
         let data;
         try {
             data = JSON.parse(responseText);
         } catch (error) {
             data = { message: responseText || "Error desconocido del servidor" };
-        }*/
+        }
 
         if (response.ok) { 
           await showAlert({
