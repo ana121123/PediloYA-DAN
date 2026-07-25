@@ -259,6 +259,7 @@ public class PedidoKafkaListener {
 
             log.info("[{}] ✓ Pago confirmado exitosamente | PedidoId: {}", eventId, event.getPedidoId());
 
+            /*
             // === PUBLICAR EVENTO DE NOTIFICACIÓN ===
             // Para que otros servicios sepan que el pedido fue pagado
             PagoProcesadoEvent notificationEvent = PagoProcesadoEvent.builder()
@@ -268,7 +269,8 @@ public class PedidoKafkaListener {
                 .build();
 
             kafkaProducer.publishEvent("pago-procesado", notificationEvent, event.getPedidoId());
-
+            */
+           
             // === CONFIRMAR OFFSET ===
             acknowledgment.acknowledge();
             log.info("[{}] ✓ Evento procesado y confirmado", eventId);

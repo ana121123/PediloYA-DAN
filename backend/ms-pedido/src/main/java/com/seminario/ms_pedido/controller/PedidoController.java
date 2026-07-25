@@ -86,14 +86,14 @@ public class PedidoController {
     public ResponseEntity<PedidoResponseDTO> obtenerPedidoPorId(@PathVariable String pedidoId, Authentication auth) {
         return ResponseEntity.ok(pedidoService.obtenerPedidoPorId(pedidoId));
     }
-
+/*
     @PatchMapping("/{id}/confirmar-pago")
     @Operation(summary = "Webhook interno: ms-pago avisa que el pago fue exitoso")
     public ResponseEntity<Void> confirmarPago(@PathVariable String id) {
         pedidoService.marcarComoPagado(id);
         return ResponseEntity.noContent().build();
     }
-
+*/
     @GetMapping("/detalle-pedido/{pedidoId}")
     @Operation(summary = "Obtiene los detalles de un pedido específico del cliente autenticado")    
     public ResponseEntity<PedidoDetalleDTO> obtenerDetallePedidoPorId(@PathVariable String pedidoId, Authentication auth) {
