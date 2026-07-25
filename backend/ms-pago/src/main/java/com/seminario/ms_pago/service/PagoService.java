@@ -26,6 +26,7 @@ import com.seminario.ms_pago.model.MetodoPago;
 import com.seminario.ms_pago.model.Pago;
 import com.seminario.ms_pago.repository.PagoRepository;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +39,7 @@ public class PagoService {
     private final PedidoClient pedidoClient;
     private final KafkaEventProducer kafkaEventProducer;
 
+    @CircuitBreaker(name = "pedidoClient", fallbackMethod = "crearPreferenciaFallback")
     public Map<String, String> crearPreferencia(String pedidoId) {
         try {
             List<Pago> pagosPendientes = pagoRepository.findByPedidoIdAndEstadoOrderByFechaCreacionAsc(pedidoId, EstadoTransaccion.PENDIENTE);
@@ -100,6 +102,14 @@ public class PagoService {
             e.printStackTrace();
             throw new RuntimeException("Error de conexión: " + e.getMessage());
         }
+    }
+
+    public Map<String, String> crearPreferenciaFallback(String pedidoId, Throwable e) {
+        log.error("Fallback en crearPreferencia para pedido {}: {}", pedidoId, e.getMessage());
+        return Map.of(
+            "error", "Servicio de pedidos no disponible",
+            "mensaje", "No pudimos procesar tu pago en este momento. Inténtalo más tarde."
+        );
     }
 
     @Transactional

@@ -22,6 +22,7 @@ public class CatalogoService {
     @CircuitBreaker(name = "catalogoClient", fallbackMethod = "registrarVendedorFallback")
     @Retry(name = "catalogoClient")
     public void registrarVendedor(VendedorRegistradoEvent evento) {
+        /* COMENTADO PARA USAR KAFKA
         try {
             catalogoClient.registrarVendedor(evento);
             
@@ -31,6 +32,8 @@ public class CatalogoService {
             throw new RequestException("CAT", 500, HttpStatus.INTERNAL_SERVER_ERROR, 
                 "Error al sincronizar con ms-catalogo: " + e.getMessage());
         }
+        */
+        log.info("Sincronización sincrónica con ms-catalogo omitida (usando Kafka). Evento: {}", evento.getUsuarioId());
     }
 
     //Fallback method cuando el circuit breaker está abierto

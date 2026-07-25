@@ -24,6 +24,7 @@ public class PedidoService {
     @CircuitBreaker(name = "pedidoClient", fallbackMethod = "registrarClienteFallback")
     @Retry(name = "pedidoClient")
     public void registrarCliente(ClienteRegistradoEvent evento) {
+        /* COMENTADO PARA USAR KAFKA
         try {
             pedidoClient.registrarCliente(evento);
 
@@ -33,6 +34,8 @@ public class PedidoService {
             throw new RequestException("PED", 500, HttpStatus.INTERNAL_SERVER_ERROR,
                     "Error al sincronizar con ms-pedido: " + e.getMessage());
         }
+        */
+        log.info("Sincronización sincrónica con ms-pedido omitida (usando Kafka). Evento: {}", evento.getUsuarioId());
     }
     
     //Fallback method cuando el circuit breaker está abierto
