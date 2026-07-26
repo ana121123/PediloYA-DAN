@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import styles from "./perfil.module.css"
 import Link from "next/link"
@@ -18,6 +18,7 @@ export default function VendedorPerfilPage() {
   const [isInitialLoading, setIsInitialLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [errors, setErrors] = useState({})
+  const errorGlobalRef = useRef(null)
 
   // Estado para previsualizar imágenes cargadas
   const [previews, setPreviews] = useState({
@@ -166,8 +167,9 @@ export default function VendedorPerfilPage() {
           element.scrollIntoView({ behavior: 'smooth', block: 'center' });
           element.focus();
         }
-      } else if (errors.global) {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else if (errors.global && errorGlobalRef.current) {
+        //window.scrollTo({ top: 0, behavior: 'smooth' });
+        errorGlobalRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
   }, [errors]);
@@ -698,7 +700,7 @@ export default function VendedorPerfilPage() {
             </div>
 
             {errors.global && (
-                <div className={styles.errorMessage}>
+                <div className={styles.errorMessage} ref={errorGlobalRef}>
                   <span>{errors.global}</span>
                 </div>
             )}
