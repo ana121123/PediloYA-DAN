@@ -44,11 +44,11 @@ public class CatalogoService {
      * @throws ProductoNoEncontradoException si el producto no existe (404)
      * @throws ServicioNoDisponibleException si el servicio está caído o el circuit breaker está abierto
      */
-    @CircuitBreaker(name = "catalogo", fallbackMethod = "obtenerIdUsuarioPorVendedorIdFallback")
-    @Cacheable(value = "usuarios", key = "#vendedorId")
+    @CircuitBreaker(name = "catalogo", fallbackMethod = "buscarProductoFallback")
+    @Cacheable(value = "productos", key = "#productoId + '_' + #vendedorId")
     @Observed(
-        name = "catalogo.obtener-id-usuario-vendedor",
-        contextualName = "obtener-id-usuario-vendedor-catalogo"
+        name = "catalogo.buscar-producto",
+        contextualName = "buscar-producto-catalogo"
     )
     public @NonNull ProductoResumidoDTO buscarProducto(@NonNull String productoId, @NonNull String vendedorId) {
 
@@ -85,11 +85,11 @@ public class CatalogoService {
         );
     }
 
-    @CircuitBreaker(name = "catalogo", fallbackMethod = "buscarProductoFallback")
-    @Cacheable(value = "productos", key = "#productoId + '_' + #vendedorId")
+    @CircuitBreaker(name = "catalogo", fallbackMethod = "obtenerIdUsuarioPorVendedorIdFallback")
+    @Cacheable(value = "usuarios", key = "#vendedorId")
     @Observed(
-        name = "catalogo.buscar-producto",
-        contextualName = "buscar-producto-catalogo"
+        name = "catalogo.obtener-id-usuario-vendedor",
+        contextualName = "obtener-id-usuario-vendedor-catalogo"
     )
     public @NonNull String obtenerIdUsuarioPorVendedorId(@NonNull String vendedorId) {
 

@@ -11,7 +11,7 @@ import com.seminario.ms_ia.dto.ProductoCatalogoDTO;
 @HttpExchange(url = "/catalogoMs")
 public interface CatalogoClient {
     
-    @GetExchange(url = "/api/vendedores/buscar/productos")
+    @GetExchange(url = "/api/vendedores/buscar/todos-productos")
     List<ProductoCatalogoDTO> buscarProductos(
             @RequestParam String provincia,
             @RequestParam String localidad,

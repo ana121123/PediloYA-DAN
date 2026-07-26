@@ -2,7 +2,6 @@ package com.seminario.ms_catalogo.controller;
 
 import java.util.List;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -25,11 +24,7 @@ import com.seminario.ms_catalogo.dto.VendedorResponseBusquedaDTO;
 import com.seminario.ms_catalogo.dto.VendedorResponseDTO;
 import com.seminario.ms_catalogo.dto.VendedorResponsePublicDTO;
 import com.seminario.ms_catalogo.dto.VendedorResumidoDTO;
-import com.seminario.ms_catalogo.dto.eventos_ms_usuarios.VendedorRegistradoEvent;
 import com.seminario.ms_catalogo.service.VendedorService;
-
-import com.seminario.ms_catalogo.dto.CalificacionVendedorRequestDTO;
-import org.springframework.web.bind.annotation.PatchMapping;
 
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -157,6 +152,17 @@ public class VendedorController {
         // Si filtro es null, le pasamos un String vacío para que tu Service no explote
         String filtroBusqueda = (filtro == null) ? "" : filtro;
         return ResponseEntity.ok(vendedorService.buscarProductos(provincia, localidad, filtroBusqueda));
+    }
+
+    @GetMapping("/buscar/todos-productos")
+    @Operation(summary = "Obtiene todos los productos de los vendedores en una ubicación específica")
+    public ResponseEntity<List<ProductoResponseBusquedaDTO>> buscarTodosLosProductos(
+            @RequestParam String provincia,
+            @RequestParam String localidad,
+            @RequestParam(required = false) String filtro) {
+        // Si filtro es null, le pasamos un String vacío para que tu Service no explote
+        String filtroBusqueda = (filtro == null) ? "" : filtro;
+        return ResponseEntity.ok(vendedorService.buscarTodosLosProductos(provincia, localidad, filtroBusqueda));
     }
 
     @GetMapping("/perfil-publico/{vendedorId}")

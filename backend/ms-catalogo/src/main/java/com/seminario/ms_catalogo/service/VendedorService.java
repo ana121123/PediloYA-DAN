@@ -414,7 +414,14 @@ public class VendedorService {
     // Retorna la lista (estará vacía [] si no hubo coincidencias, sin lanzar error)
     return new ArrayList<>(productosOrdenados);
 }
-
+    public List<ProductoResponseBusquedaDTO> buscarTodosLosProductos(String provincia, String localidad, String filtro){
+        List<Vendedor> vendedores = obtenerVendedoresPorUbicacion(provincia, localidad);
+        return vendedores.stream()
+                .flatMap(v -> v.getProductos().stream()
+                    .filter(p -> !Estado.INACTIVO.equals(p.getEstado()))
+                    .map(p -> productoMapper.toDTO(p, v.getId(), v.getNombreNegocio())))
+                .collect(Collectors.toList());
+    }
     // Método auxiliar para evitar repetir código y mantener la limpieza
     private void agregarProductosPorCriterio(List<Vendedor> vendedores, Set<ProductoResponseBusquedaDTO> set, String filtro, String criterio) {
         for (Vendedor v : vendedores) {

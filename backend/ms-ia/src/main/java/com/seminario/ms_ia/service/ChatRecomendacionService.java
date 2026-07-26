@@ -60,17 +60,28 @@ public class ChatRecomendacionService {
             disponibles = todos.stream()
                     .filter(p -> Boolean.TRUE.equals(p.getDisponible()))
                     .toList();
+
+            log.info("Catálogo recibido: {} productos, {} disponibles",todos.size(),disponibles.size());
+            
+            log.info("Productos disponibles:");
+            disponibles.forEach(p -> log.info("Producto: id={}, nombre={}, categoria={}, subcategoria={}, disponible={}",
+                    p.getId(),
+                    p.getNombre(),
+                    p.getCategoria(),
+                    p.getSubcategoria(),
+                    p.getDisponible()));
         } catch (Exception ex) {
             log.error("Error consultando catálogo para recomendación IA", ex);
             throw new IAServiceException("No se pudo generar la recomendación en este momento");
         }
+        
 
         if (disponibles.isEmpty()) {
             return new ChatRecomendacionResponseDTO(
                     "No encontré productos disponibles en tu zona en este momento.",
                     List.of());
         }
-
+        
         String catalogoJson;
         try {
             List<Map<String, Object>> catalogoCompacto = disponibles.stream()
@@ -97,12 +108,14 @@ public class ChatRecomendacionService {
                 """.formatted(mensaje, catalogoJson);
 
         try {
+            log.info("Mensaje del usuario: {}", mensaje);
+            log.info("Prompt enviado a la IA:\n{}", prompt);
             String respuesta = chatClient.prompt()
                     .system(SYSTEM_PROMPT)
                     .user(prompt)
                     .call()
                     .content();
-
+            log.info("Respuesta cruda de la IA: {}", respuesta);
             return parsearRespuesta(respuesta, disponibles);
 
         } catch (IAServiceException ex) {
@@ -124,7 +137,7 @@ public class ChatRecomendacionService {
             Map<String, Object> parsed = objectMapper.readValue(limpio, Map.class);
             String mensaje = (String) parsed.getOrDefault("mensaje", "");
             List<String> ids = (List<String>) parsed.getOrDefault("idsRecomendados", List.of());
-
+            log.info("IDs recomendados por la IA: {}", ids);
             List<ProductoCatalogoDTO> productosGrounded = new ArrayList<>();
             for (String id : ids) {
                 disponibles.stream()
@@ -132,7 +145,7 @@ public class ChatRecomendacionService {
                         .findFirst()
                         .ifPresent(productosGrounded::add);
             }
-
+            log.info("IDs recomendados por la IA: {}", ids);
             return new ChatRecomendacionResponseDTO(mensaje, productosGrounded);
 
         } catch (Exception ex) {
