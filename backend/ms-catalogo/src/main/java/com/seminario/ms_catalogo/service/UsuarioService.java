@@ -27,14 +27,15 @@ public class UsuarioService {
     @CircuitBreaker(name = "usuarioClient", fallbackMethod = "actualizarVendedorFallback")
     @Retry(name = "usuarioClient")
     public VendedorRegistradoEvent actualizarVendedor(VendedorRegistradoEvent vendedorRegistradoEvent) {
-        try {            
-            return usuarioClient.actualizarVendedor(vendedorRegistradoEvent);
-            
-        } catch (HttpStatusCodeException e) {
+        return usuarioClient.actualizarVendedor(vendedorRegistradoEvent);
+    }
+
+    // Fallback: se ejecuta si el breaker está OPEN, o si se agotaron los reintentos
+    public VendedorRegistradoEvent actualizarVendedorFallback(VendedorRegistradoEvent vendedorRegistradoEvent, Throwable exception) {
+        if (exception instanceof HttpStatusCodeException e) {
             String mensajeReal = "Error de validación en ms-usuarios";
             try {
                 JsonNode jsonNode = objectMapper.readTree(e.getResponseBodyAsString());
-                
                 if (jsonNode.has("message")) {
                     mensajeReal = jsonNode.get("message").asText();
                 } else if (jsonNode.has("mensaje")) {
@@ -43,20 +44,9 @@ public class UsuarioService {
             } catch (Exception ex) {
                 mensajeReal = e.getResponseBodyAsString();
             }
-            
             throw new RequestException("PED", e.getStatusCode().value(), (HttpStatus) e.getStatusCode(), mensajeReal);
-
-        } catch (Exception e) {
-            throw new RuntimeException("Error al sincronizar con ms-usuarios: " + e.getMessage());
         }
-    }
-
-    //Fallback method cuando el circuit breaker está abierto
-    public VendedorRegistradoEvent actualizarVendedorFallback(VendedorRegistradoEvent vendedorRegistradoEvent, Exception exception) {
-        if (exception instanceof RequestException requestException) {
-            throw requestException;
-        }
-        throw new RequestException("CAT", 503, HttpStatus.SERVICE_UNAVAILABLE, 
+        throw new RequestException("CAT", 503, HttpStatus.SERVICE_UNAVAILABLE,
             "El servicio de usuarios no está disponible. Por favor intente más tarde.");
     }
 }

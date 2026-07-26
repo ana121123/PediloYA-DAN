@@ -236,6 +236,9 @@ export default function VendedorPerfilPage() {
     setLoadingData(true)
     setErrors({})
 
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 15000) // 15s máximo
+
     try {
       const token = sessionStorage.getItem("token")
       
@@ -285,8 +288,11 @@ export default function VendedorPerfilPage() {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(vendedorUpdateDTO)
+        body: JSON.stringify(vendedorUpdateDTO),
+        signal: controller.signal
       })
+
+      clearTimeout(timeoutId)
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
@@ -317,11 +323,16 @@ export default function VendedorPerfilPage() {
       })
 
     } catch (error) {
-      console.error(error)
-      await showAlert({
-        title: "Error",
-        description: "Hubo un error al guardar los cambios: " + error.message,
-      })
+      clearTimeout(timeoutId)
+      if (error.name === 'AbortError') {
+        setErrors({ global: "El servidor está tardando demasiado en responder. Intentá de nuevo en unos minutos." });
+      } else {
+        console.error(error)
+        await showAlert({
+          title: "Error",
+          description: "Hubo un error al guardar los cambios: " + error.message,
+        })
+      }
     } finally {
       setLoadingData(false)
       setIsSaving(false)
