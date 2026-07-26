@@ -5,11 +5,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.seminario.ms_ia.client.CatalogoClient;
+import com.seminario.ms_ia.service.CatalogoGatewayService;
 import com.seminario.ms_ia.dto.ChatRecomendacionResponseDTO;
 import com.seminario.ms_ia.dto.ProductoCatalogoDTO;
 import com.seminario.ms_ia.exception.IAServiceException;
@@ -20,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ChatRecomendacionService {
     private final ChatClient chatClient;
-    private final CatalogoClient catalogoClient;
+    private final CatalogoGatewayService catalogoGatewayService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final String SYSTEM_PROMPT = """
@@ -43,10 +42,9 @@ public class ChatRecomendacionService {
             {"mensaje": "...", "idsRecomendados": ["id1", "id2"]}
             """;
 
-    @Autowired
-    public ChatRecomendacionService(ChatClient.Builder chatClientBuilder, CatalogoClient catalogoClient) {
+    public ChatRecomendacionService(ChatClient.Builder chatClientBuilder, CatalogoGatewayService catalogoGatewayService) {
         this.chatClient = chatClientBuilder.build();
-        this.catalogoClient = catalogoClient;
+        this.catalogoGatewayService = catalogoGatewayService;
     }
 
     public ChatRecomendacionResponseDTO recomendar(String mensaje, String provincia, String localidad) {
@@ -56,7 +54,7 @@ public class ChatRecomendacionService {
 
         List<ProductoCatalogoDTO> disponibles;
         try {
-            List<ProductoCatalogoDTO> todos = catalogoClient.buscarProductos(provincia, localidad, "");
+            List<ProductoCatalogoDTO> todos = catalogoGatewayService.buscarProductos(provincia, localidad);
             disponibles = todos.stream()
                     .filter(p -> Boolean.TRUE.equals(p.getDisponible()))
                     .toList();
@@ -70,6 +68,8 @@ public class ChatRecomendacionService {
                     p.getCategoria(),
                     p.getSubcategoria(),
                     p.getDisponible()));
+        } catch (IAServiceException ex) {
+            throw ex;
         } catch (Exception ex) {
             log.error("Error consultando catálogo para recomendación IA", ex);
             throw new IAServiceException("No se pudo generar la recomendación en este momento");
