@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpStatusCodeException;
 
 import com.mercadopago.client.payment.PaymentClient;
 import com.mercadopago.client.preference.PreferenceBackUrlsRequest;
@@ -20,6 +22,7 @@ import com.mercadopago.resources.preference.Preference;
 import com.seminario.ms_pago.client.PedidoClient;
 import com.seminario.ms_pago.dto.PedidoResponseDTO;
 import com.seminario.ms_pago.dto.eventos_kafka.PagoConfirmadoEvent;
+import com.seminario.ms_pago.exception.RequestException;
 import com.seminario.ms_pago.kafka.producers.KafkaEventProducer;
 import com.seminario.ms_pago.model.EstadoTransaccion;
 import com.seminario.ms_pago.model.MetodoPago;
@@ -27,6 +30,7 @@ import com.seminario.ms_pago.model.Pago;
 import com.seminario.ms_pago.repository.PagoRepository;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +44,7 @@ public class PagoService {
     private final KafkaEventProducer kafkaEventProducer;
 
     @CircuitBreaker(name = "pedidoClient", fallbackMethod = "crearPreferenciaFallback")
+    @Retry(name = "pedidoClient")
     public Map<String, String> crearPreferencia(String pedidoId) {
         try {
             List<Pago> pagosPendientes = pagoRepository.findByPedidoIdAndEstadoOrderByFechaCreacionAsc(pedidoId, EstadoTransaccion.PENDIENTE);
@@ -106,10 +111,8 @@ public class PagoService {
 
     public Map<String, String> crearPreferenciaFallback(String pedidoId, Throwable e) {
         log.error("Fallback en crearPreferencia para pedido {}: {}", pedidoId, e.getMessage());
-        return Map.of(
-            "error", "Servicio de pedidos no disponible",
-            "mensaje", "No pudimos procesar tu pago en este momento. Inténtalo más tarde."
-        );
+        throw new RequestException("PAG", 503, HttpStatus.SERVICE_UNAVAILABLE,
+            "No pudimos procesar tu pago en este momento. Inténtalo más tarde.");
     }
 
     @Transactional
