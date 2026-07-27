@@ -30,96 +30,34 @@ public class CatalogoService {
     
     private final CatalogoClient catalogoClient;
 
-    /**
-     * Busca un producto con resiliencia completa.
-     * 
-     * CACHE:
-     * - Key: "productoId_vendedorId"
-     * 
-     * OBSERVABILIDAD:
-     * - Genera spans automáticos para traces distribuidos
-     * - Métricas: latencia, tasa de éxito, cache hit rate
-     * - Logs estructurados con contexto
-     * 
-     * @throws ProductoNoEncontradoException si el producto no existe (404)
-     * @throws ServicioNoDisponibleException si el servicio está caído o el circuit breaker está abierto
-     */
     @CircuitBreaker(name = "catalogo", fallbackMethod = "buscarProductoFallback")
-    @Cacheable(value = "productos", key = "#productoId + '_' + #vendedorId")
-    @Observed(
-        name = "catalogo.buscar-producto",
-        contextualName = "buscar-producto-catalogo"
-    )
     public @NonNull ProductoResumidoDTO buscarProducto(@NonNull String productoId, @NonNull String vendedorId) {
-
-        try {
-            ProductoResumidoDTO producto = catalogoClient.buscarProducto(productoId, vendedorId);
-            
-            return producto;
-            
-        } catch (HttpClientErrorException.NotFound e) {
-            // 404: El producto no existe
-            throw new ProductoNoEncontradoException(productoId, vendedorId);
-            
-        } catch (HttpClientErrorException.BadRequest e) {
-            // 400: Request mal formado
-            throw e;
-            
-        } catch (HttpClientErrorException e) {
-            throw e;
-            
-        } catch (ResourceAccessException e) {
-            // Error de conectividad (timeout, connection refused, etc.)
-            log.error("Error de conectividad con MS-Catálogo: {}", e.getMessage());
-            throw new ServicioNoDisponibleException("catálogo", e);
-        }
+        return catalogoClient.buscarProducto(productoId, vendedorId);
     }
 
-    
-    private @NonNull ProductoResumidoDTO buscarProductoFallback(@NonNull String productoId, @NonNull String vendedorId, Exception e) {
-        
+    private @NonNull ProductoResumidoDTO buscarProductoFallback(@NonNull String productoId, @NonNull String vendedorId, Throwable t) {
+        if (t instanceof HttpClientErrorException.NotFound) {
+            throw new ProductoNoEncontradoException(productoId, vendedorId);
+        }
+        log.error("Error de conectividad con MS-Catálogo: {}", t.getMessage());
         throw new ServicioNoDisponibleException(
             "catálogo",
-            "El servicio de catálogo no está disponible en este momento. " +
-            e.getMessage()
-        );
+            "El servicio de catálogo no está disponible en este momento. " + t.getMessage());
     }
 
     @CircuitBreaker(name = "catalogo", fallbackMethod = "obtenerIdUsuarioPorVendedorIdFallback")
-    @Cacheable(value = "usuarios", key = "#vendedorId")
-    @Observed(
-        name = "catalogo.obtener-id-usuario-vendedor",
-        contextualName = "obtener-id-usuario-vendedor-catalogo"
-    )
     public @NonNull String obtenerIdUsuarioPorVendedorId(@NonNull String vendedorId) {
-
-        try {
-            String id = catalogoClient.obtenerIdUsuarioPorVendedorId(vendedorId);
-            
-            return id;
-            
-        } catch (HttpClientErrorException.BadRequest e) {
-            // 400: Request mal formado
-            throw e;
-            
-        } catch (HttpClientErrorException e) {
-            throw e;
-            
-        } catch (ResourceAccessException e) {
-            // Error de conectividad (timeout, connection refused, etc.)
-            log.error("Error de conectividad con MS-Catálogo: {}", e.getMessage());
-            throw new ServicioNoDisponibleException("catálogo", e);
-        }
+        return catalogoClient.obtenerIdUsuarioPorVendedorId(vendedorId);
     }
 
-    
-    private @NonNull String obtenerIdUsuarioPorVendedorIdFallback(@NonNull String vendedorId, Exception e) {
-        
+    private @NonNull String obtenerIdUsuarioPorVendedorIdFallback(@NonNull String vendedorId, Throwable t) {
+        if (t instanceof HttpClientErrorException.BadRequest) {
+            throw (HttpClientErrorException.BadRequest) t;
+        }
+        log.error("Error de conectividad con MS-Catálogo: {}", t.getMessage());
         throw new ServicioNoDisponibleException(
             "catálogo",
-            "El servicio de catálogo no está disponible en este momento. " +
-            e.getMessage()
-        );
+            "El servicio de catálogo no está disponible en este momento. " + t.getMessage());
     }
 
     @CircuitBreaker(name = "catalogo", fallbackMethod = "obtenerEmailPorVendedorIdFallback")
