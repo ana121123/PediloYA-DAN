@@ -752,3 +752,45 @@
 .mainWithFixedHeader {
   padding-top: 120px;
 }
+
+/* Error en la creación de preferencia de pago */
+.paymentError {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 16px;
+  background-color: #fff5f6;
+  border: 1px solid #ffdae0;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.paymentErrorText {
+  font-size: 13px;
+  color: #e84c6a;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.paymentErrorBtn {
+  padding: 10px 28px;
+  background: linear-gradient(135deg, #ff4b7e 0%, #ff8e4f 100%);
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.paymentErrorBtn:hover {
+  opacity: 0.9;
+}
+
+.paymentErrorBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

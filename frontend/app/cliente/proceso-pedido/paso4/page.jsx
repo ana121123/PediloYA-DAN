@@ -23,6 +23,8 @@ export default function Paso4Page() {
   const [clientProfile, setClientProfile] = useState(null);
   const [pedido, setPedido] = useState(null);
   const [vendedorId, setVendedorId] = useState(searchParams.get('vendedorId'));
+ 
+  const [paymentError, setPaymentError] = useState(null);
   
   useEffect(() => {
     fetchPerfil();
@@ -52,6 +54,7 @@ export default function Paso4Page() {
 
   const crearPreferenciaPago = async (pedidoId) => {
     setLoading(true);
+    setPaymentError(null);
     try {
       const token = sessionStorage.getItem("token");
       const res = await fetch(`/pagoMs/api/pagos/create-preference/${pedidoId}`, {
@@ -61,9 +64,13 @@ export default function Paso4Page() {
       if (res.ok) {
         const data = await res.json();
         setPreferenceId(data.preferenceId); 
+      } else {
+        const errorData = await res.json().catch(() => null);
+        setPaymentError(errorData?.mensaje || "No pudimos procesar tu pago en este momento. Inténtalo más tarde.");
       }
     } catch (error) {
       console.error("Error creando preferencia:", error);
+      setPaymentError("No pudimos conectar con el servicio de pagos. Inténtalo más tarde.");
     } finally {
       setLoading(false);
     }
@@ -158,6 +165,17 @@ export default function Paso4Page() {
                   <div className={styles.btnContainer}>
                     {loading && !preferenceId && (
                       <p className={styles.paymentDesc}>Generando link de pago...</p>
+                    )}
+                    {paymentError && (
+                      <div className={styles.paymentError}>
+                        <p className={styles.paymentErrorText}>{paymentError}</p>
+                        <button 
+                          className={styles.paymentErrorBtn}
+                          disabled={loading}
+                          onClick={() => crearPreferenciaPago(sessionStorage.getItem("currentPedidoId"))}>
+                          {loading ? "Reintentando..." : "Reintentar"}
+                        </button>
+                      </div>
                     )}
                     {preferenceId && <BtnMercadoPago preferenceId={preferenceId} />}
                   </div>

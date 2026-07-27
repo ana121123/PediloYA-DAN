@@ -22,6 +22,7 @@ import com.mercadopago.resources.preference.Preference;
 import com.seminario.ms_pago.client.PedidoClient;
 import com.seminario.ms_pago.dto.PedidoResponseDTO;
 import com.seminario.ms_pago.dto.eventos_kafka.PagoConfirmadoEvent;
+import com.seminario.ms_pago.exception.PagoServiceException;
 import com.seminario.ms_pago.exception.RequestException;
 import com.seminario.ms_pago.kafka.producers.KafkaEventProducer;
 import com.seminario.ms_pago.model.EstadoTransaccion;
@@ -48,17 +49,23 @@ public class PagoService {
     public Map<String, String> crearPreferencia(String pedidoId) {
         try {
             List<Pago> pagosPendientes = pagoRepository.findByPedidoIdAndEstadoOrderByFechaCreacionAsc(pedidoId, EstadoTransaccion.PENDIENTE);
-            
+            PedidoResponseDTO pedido = pedidoClient.obtenerPedidoPorId(pedidoId);
+
             if (!pagosPendientes.isEmpty()) {
-                Pago pagoPendiente = pagosPendientes.get(0);
-                log.warn("Ya existe una transacción PENDIENTE para el pedido {}. Preferencia ID: {}", pedidoId, pagoPendiente.getPreferenciaId());
+            Pago pagoPendiente = pagosPendientes.get(0);
+            if (pagoPendiente.getMonto().compareTo(pedido.getMontoTotal()) == 0) {
+                log.warn("Ya existe una transacción PENDIENTE con el mismo monto para el pedido {}. Preferencia ID: {}", pedidoId, pagoPendiente.getPreferenciaId());
                 return Map.of(
                     "preferenceId", pagoPendiente.getPreferenciaId(),
                     "url", "https://www.mercadopago.com.ar/checkout/v1/redirect?preference-id=" + pagoPendiente.getPreferenciaId()
                 );
             }
+            log.warn("El pedido {} cambió de monto ({} -> {}). Se invalida la preferencia pendiente {} y se crea una nueva.",
+                pedidoId, pagoPendiente.getMonto(), pedido.getMontoTotal(), pagoPendiente.getPreferenciaId());
+            pagoPendiente.setEstado(EstadoTransaccion.CANCELADO);
+            pagoRepository.save(pagoPendiente);
+        }
 
-            PedidoResponseDTO pedido = pedidoClient.obtenerPedidoPorId(pedidoId);
 
             PreferenceClient client = new PreferenceClient();
 
@@ -111,8 +118,9 @@ public class PagoService {
 
     public Map<String, String> crearPreferenciaFallback(String pedidoId, Throwable e) {
         log.error("Fallback en crearPreferencia para pedido {}: {}", pedidoId, e.getMessage());
-        throw new RequestException("PAG", 503, HttpStatus.SERVICE_UNAVAILABLE,
-            "No pudimos procesar tu pago en este momento. Inténtalo más tarde.");
+        throw new PagoServiceException(
+            "No pudimos procesar tu pago en este momento. Inténtalo más tarde."
+        );
     }
 
     @Transactional
