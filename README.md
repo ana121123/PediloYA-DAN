@@ -1,7 +1,4 @@
-# Proyecto Final - Analista de Sistemas
-
-> **Soon Analysts!!** 🎓
-> Proyecto integrador para la obtención del título intermedio de Analista de Sistemas.
+# Trabajo Práctico - Desarrollo de Aplicaciones en la Nube
 
 Este repositorio contiene la implementación de una arquitectura de **Microservicios** 
 
@@ -11,8 +8,9 @@ Este repositorio contiene la implementación de una arquitectura de **Microservi
 
 ### Backend & Core
 * **Lenguaje:** Java 21 
-* **Framework:** Spring Boot 4
+* **Framework:** Spring Boot 3.4+
 * **Seguridad:** Spring Security + JWT (JSON Web Tokens)
+* **Resiliencia:** Resilience4j (Circuit Breaker, Retry) para tolerancia a fallos.
 * **Comunicación en Tiempo Real:** Spring WebSocket + STOMP.
 * **Build Tool:** Maven
 
@@ -21,15 +19,22 @@ Este repositorio contiene la implementación de una arquitectura de **Microservi
 * **Notificaciones UI:** `react-hot-toast`.
 * **Diseño UI/UX:** Prototipado realizado en **Figma**.
 
-### Infraestructura y Datos
-* **Contenedores:** **Docker** & **Docker Compose** para orquestación local.
-* **Bases de Datos:** PostgreSQL (SQL) y MongoDB (NoSQL).
-* **Comunicación:** Comunicación sincrónica **HTTP** entre microservicios (RestClient / WebClient).
+### Infraestructura, Datos y Mensajería
+* **Contenedores:** **Docker** & **Docker Compose**.
+* **Bases de Datos:** PostgreSQL (Relacional), MongoDB (NoSQL).
+* **Service Discovery:** Netflix Eureka Server.
+* **API Gateway:** Spring Cloud Gateway.
+* **Mensajería Asincrónica:** **Apache Kafka** (Event-Driven Architecture).
+* **Observabilidad & Monitoreo:** 
+    * **Métricas:** Prometheus + Actuator.
+    * **Visualización:** Grafana.
+    * **Logs Centralizados:** Loki + Promtail.
 * **Documentación:** OpenAPI (Swagger UI).
 
-### Integraciones de Terceros
+### IA & Integraciones de Terceros
+* **IA Generativa:** **MS-IA** (Integración con **Groq API**) para recomendaciones inteligentes.
 * **Pagos:** Checkout Pro de **Mercado Pago**.
-* **Geolocalización:** Integración con **Photon** para búsqueda de direcciones y mapas.
+* **Geolocalización:** Integración con **Photon** para búsqueda de direcciones.
 
 ---
 
@@ -43,6 +48,7 @@ Encargado de la autenticación, registro de cuentas (Clientes/Vendedores) y gest
 * **Puerto:** `8080`
 * **Context Path:** `/usuariosMs`
 * **Documentación (Swagger):** [Ver API Docs](http://localhost:8080/usuariosMs/swagger-ui/index.html)
+* **Eventos Kafka:** Publica `cliente-registrado` y `vendedor-registrado`.
 
 ### 2. Microservicio de Catálogo (`ms-catalogo`)
 Encargado de la gestión de productos, perfiles de tiendas (vendedores) y pedidos recibidos.
@@ -50,6 +56,7 @@ Encargado de la gestión de productos, perfiles de tiendas (vendedores) y pedido
 * **Puerto:** `8081`
 * **Context Path:** `/catalogoMs`
 * **Documentación (Swagger):** [Ver API Docs](http://localhost:8081/catalogoMs/swagger-ui/index.html)
+* **Eventos Kafka:** Sincroniza perfiles de vendedores desde `vendedor-registrado`.
 
 ### 3. Microservicio de Pedidos (`ms-pedido`)
 Encargado de orquestar el proceso de compra. Búsqueda de productos, carritos de compra, realizacion de pedidos y notificaciones.
@@ -57,6 +64,8 @@ Encargado de orquestar el proceso de compra. Búsqueda de productos, carritos de
 * **Puerto:** `8082`
 * **Context Path:** `/pedidoMs`
 * **Documentación (Swagger):** [Ver API Docs](http://localhost:8082/pedidoMs/swagger-ui/index.html)
+* **Resiliencia:** Circuit Breaker en comunicaciones con Catálogo y Usuarios.
+* **Eventos Kafka:** Actualiza estados mediante `pago-confirmado` y `cliente-registrado`.
 
 ### 4. Microservicio de Pagos (`ms-pago`)
 Encargado de la gestión de transacciones financieras. Integra el Checkout Pro de Mercado Pago para procesar pagos y gestionar Webhooks (notificaciones de estado).
@@ -64,8 +73,40 @@ Encargado de la gestión de transacciones financieras. Integra el Checkout Pro d
 * **Puerto:** `8083`
 * **Context Path:** `/pagoMs`
 * **Documentación (Swagger):** [Ver API Docs](http://localhost:8083/pagoMs/swagger-ui/index.html)
+* **Resiliencia:** Implementa Circuit Breaker para consultas a `ms-pedido`.
+* **Eventos Kafka:** Publica `pago-confirmado` tras procesar Webhooks exitosos.
 
 > **Nota:** Para ver la documentación, asegurate de tener el microservicio corriendo localmente.
+
+### 5. Microservicio de IA (`ms-ia`)
+Proporciona soporte y recomendaciones basadas en lenguaje natural (LLM).
+* **Puerto:** `8085`
+* **Context Path:** `/iaMs`
+* **Documentación (Swagger):** [Ver API Docs](http://localhost:8085/iaMs/swagger-ui/index.html)
+
+---
+
+## Observabilidad (Monitoreo y Logs)
+
+STACK local para el seguimiento del sistema:
+
+| Herramienta | Función | Acceso Local |
+| :--- | :--- | :--- |
+| **Eureka Server** | Registro y Discovery | [http://localhost:8761](http://localhost:8761) |
+| **Prometheus** | Recolección de Métricas | [http://localhost:9090](http://localhost:9090) |
+| **Grafana** | Visualización (Dashboards) | [http://localhost:3001](http://localhost:3001) |
+| **Kafka UI** | Inspección de Tópicos | [http://localhost:8087](http://localhost:8087) |
+| **API Gateway** | Punto de entrada único | [http://localhost:8090](http://localhost:8090) |
+
+---
+
+## Mensajería con Kafka (Event-Driven)
+
+Flujos asincrónicos implementados para garantizar consistencia eventual:
+
+*   `cliente-registrado`: Sincroniza perfiles entre MS Usuarios -> MS Pedido.
+*   `vendedor-registrado`: Sincroniza tiendas entre MS Usuarios -> MS Catálogo.
+*   `pago-confirmado`: MS Pago -> MS Pedido para avanzar el flujo del pedido.
 
 ---
 
@@ -99,16 +140,47 @@ El diseño de interfaz (estimativo/idea) fue realizado en figma.
 
 ### 1. Requisitos Previos
 * Java 21 & Maven.
-* Docker & Docker Compose.
+* Docker Desktop.
 * Node.js & npm.
 * Ngrok
 
-### 2. Configuración de Pagos (Mercado Pago)
+### 2. Variables de Entorno (.env)
+Crea un archivo `.env` dentro de la carpeta `docker/` con tus claves personales:
+
+```bash
+# Mercado Pago
+MERCADOPAGO_ACCESS_TOKEN=tu_token_aqui
+NGROK_URL=https://tu-url.ngrok-free.dev
+
+# IA (Groq)
+GROQ_API_KEY=tu_api_key_groq
+
+# Seguridad
+JWT_SECRET_KEY=clave_secreta_para_jwt
+```
+
+### 3. Ejecución
+
+1. **Levantar/Bajar Infraestructura:**
+   ```bash
+   cd docker
+   docker-compose up -d --build
+
+   cd docker
+   docker compose down
+   ```
+2. **Levantar Frontend:**
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+### 4. Configuración de Pagos (Mercado Pago)
 Para las pruebas de integración, utilizá las credenciales de prueba que se encuentran en el siguiente archivo del repositorio:
 * 📄 **[Mocks - Mercado Pago.xlsx](https://frsfutneduar-my.sharepoint.com/:x:/g/personal/koggier_frsf_utn_edu_ar/IQCmphXqySjsRIoaW2xptUFoAcuGCSz3PnUffChnBQV4U90?e=MFLIoF)**
 * 💳 **Tarjetas de Prueba:** Podés encontrar números de tarjeta para testear diferentes escenarios (pago aprobado, rechazado, etc.) aquí: [Tarjetas de prueba de Mercado Pago](https://www.mercadopago.com.ar/developers/es/docs/checkout-pro/integration-test/test-purchases).
 
-### 3. Túnel de Webhooks con Ngrok
+### 5. Túnel de Webhooks con Ngrok
 Como Mercado Pago necesita enviar notificacionesa al servidor local (ya que no está desplegado), se usa **ngrok** para exponer el microservicio de pagos:
 
 1. **Instalar Ngrok:** Descargalo desde [ngrok.com](https://ngrok.com/download).
@@ -119,7 +191,7 @@ Como Mercado Pago necesita enviar notificacionesa al servidor local (ya que no e
 
    ngrok http 3000
 
-### 4. Mercado Pago en el frontend
+### 6. Mercado Pago en el frontend
 Para que el botón de pago funcione, se necesita instalar la SDK de Mercado Pago en el proyecto de Next.js:
 
 cd frontend
@@ -128,30 +200,9 @@ npm install @mercadopago/sdk-react
 
 ---
 
-## Ejecución del sistema
-
-### 1. Infraestructura (Bases de datos):
-* Para levantarla:
-
-cd docker
-
-docker-compose up -d
-
-* Para bajarla:
-
-cd docker
-
-docker compose down
-
-### 2. Ejecutar el frontend:
-cd frontend
-
-npm run dev
-
----
-
 ## Autores
 
 * **Karen Juliana Oggier** 
 * **Ana Carolina Ramos Bonvin**
 * **Juan Marco Garcés**
+* **Ignacio Garcés**
