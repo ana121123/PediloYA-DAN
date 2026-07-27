@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef  } from "react"
 import { useRouter } from "next/navigation"
 import styles from "./perfil.module.css"
 import Link from "next/link"
@@ -20,6 +20,7 @@ export default function ClientePerfilPage() {
   const [isInitialLoading, setIsInitialLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [errors, setErrors] = useState({})
+  const errorGlobalRef = useRef(null)
 
   // Estado para previsualizar imágenes cargadas
   const [previews, setPreviews] = useState({
@@ -124,8 +125,9 @@ export default function ClientePerfilPage() {
           element.scrollIntoView({ behavior: 'smooth', block: 'center' });
           element.focus();
         }
-      } else if (errors.global) {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else if (errors.global  && errorGlobalRef.current) {
+        //window.scrollTo({ top: 0, behavior: 'smooth' });
+        errorGlobalRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
   }, [errors]);
@@ -161,6 +163,9 @@ export default function ClientePerfilPage() {
     setLoadingData(true)
     setErrors({})
 
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 15000) // 15s máximo
+
     try {
       const token = sessionStorage.getItem("token")
       
@@ -189,14 +194,21 @@ export default function ClientePerfilPage() {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(vendedorUpdateDTO)
+        body: JSON.stringify(vendedorUpdateDTO),
+        signal: controller.signal
       })
+
+      clearTimeout(timeoutId)
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
 
           if (errorData) {
-            setErrors(errorData);
+            if (errorData.ms_code) {
+              setErrors({ global: errorData.mensaje || "Error al actualizar el perfil." });
+            } else {
+                setErrors(errorData);
+            }
           } else {
              setErrors({ global: "Error desconocido en el servidor" });
           }
@@ -223,11 +235,16 @@ export default function ClientePerfilPage() {
       }))
 
     } catch (error) {
-      console.error(error)
-      await showAlert({
-        title: "Error",
-        description: "Hubo un error al guardar los cambios: " + error.message,
-      })
+      clearTimeout(timeoutId)
+      if (error.name === 'AbortError') {
+        setErrors({ global: "El servidor está tardando demasiado en responder. Intentá de nuevo en unos minutos." });
+      } else {
+        console.error(error)
+        await showAlert({
+          title: "Error",
+          description: "Hubo un error al guardar los cambios: " + error.message,
+        })
+      }
     } finally {
       setLoadingData(false)
       setIsSaving(false)
@@ -360,7 +377,7 @@ export default function ClientePerfilPage() {
             </div>
 
             {errors.global && (
-                <div className={styles.errorMessage}>
+                <div className={styles.errorMessage} ref={errorGlobalRef}>
                   <span>{errors.global}</span>
                 </div>
             )}

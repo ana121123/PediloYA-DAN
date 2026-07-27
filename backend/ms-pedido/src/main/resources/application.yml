@@ -262,6 +262,26 @@ resilience4j:
       usuarioClient:
         baseConfig: default
 
+  # Retry para las mismas instancias, con la misma config base
+  retry:
+    configs:
+      default:
+        maxAttempts: 3
+        waitDuration: 1000
+        retryExceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - org.springframework.web.client.ResourceAccessException
+          - java.net.ConnectException
+          - java.net.SocketTimeoutException
+          - java.util.concurrent.TimeoutException
+
+    instances:
+      catalogo:
+        baseConfig: default
+
+      usuarioClient:
+        baseConfig: default
+        
 # ===== ACTUATOR & OBSERVABILIDAD =====
 management:
   endpoints:
