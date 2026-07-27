@@ -159,6 +159,7 @@ services:
       - KAFKA_BOOTSTRAP_SERVERS=kafka-broker-1:9092
       - MERCADOPAGO_ACCESS_TOKEN=${MERCADOPAGO_ACCESS_TOKEN}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - NGROK_URL=${NGROK_URL} 
     depends_on:
       eureka-server:
         condition: service_healthy

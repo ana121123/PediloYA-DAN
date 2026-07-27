@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -44,6 +45,9 @@ public class PagoService {
     private final PedidoClient pedidoClient;
     private final KafkaEventProducer kafkaEventProducer;
 
+    @Value("${mercadopago.ngrok.url}")
+    private String ngrokUrl;
+
     @CircuitBreaker(name = "pedidoClient", fallbackMethod = "crearPreferenciaFallback")
     @Retry(name = "pedidoClient")
     public Map<String, String> crearPreferencia(String pedidoId) {
@@ -81,11 +85,11 @@ public class PagoService {
             PreferenceRequest request = PreferenceRequest.builder()
                 .items(items)
                 .externalReference(pedidoId)
-                .notificationUrl("https://irreproachably-microtonal-evie.ngrok-free.dev/pagoMs/api/pagos/webhook")
+                .notificationUrl(ngrokUrl + "/pagoMs/api/pagos/webhook")
                 .backUrls(PreferenceBackUrlsRequest.builder()
-                        .success("https://irreproachably-microtonal-evie.ngrok-free.dev/cliente/proceso-pedido/paso5") 
-                        .pending("https://irreproachably-microtonal-evie.ngrok-free.dev/cliente/proceso-pedido/paso5")
-                        .failure("https://irreproachably-microtonal-evie.ngrok-free.dev/cliente/proceso-pedido/paso5")
+                        .success(ngrokUrl + "/cliente/proceso-pedido/paso5") 
+                        .pending(ngrokUrl + "/cliente/proceso-pedido/paso5")
+                        .failure(ngrokUrl + "/cliente/proceso-pedido/paso5")
                         .build())
                 .autoReturn("approved") 
                 .build();
