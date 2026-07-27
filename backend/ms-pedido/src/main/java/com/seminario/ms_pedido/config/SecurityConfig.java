@@ -55,7 +55,8 @@ public class SecurityConfig {
                         "/actuator/info",
                         "/actuator/prometheus",
                         "/actuator/circuitbreakers",
-                        "/actuator/circuitbreakerevents"
+                        "/actuator/circuitbreakerevents",
+                        "/actuator/metrics"
                     )
                     .permitAll() // <-- falta
                     .anyRequest()

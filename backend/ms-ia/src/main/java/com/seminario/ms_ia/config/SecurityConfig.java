@@ -36,7 +36,9 @@ public class SecurityConfig {
                     "/actuator/info",
                     "/actuator/prometheus",
                     "/actuator/circuitbreakers",
-                    "/actuator/circuitbreakerevents"
+                    "/actuator/circuitbreakerevents",
+                    "/actuator/circuitbreakers",
+                    "/actuator/metrics"
                 ).permitAll()
                 .requestMatchers("/actuator/**").authenticated()
                 .requestMatchers("/ia/**").authenticated() // requiere JWT válido del gateway
