@@ -53,7 +53,7 @@ public class CarritoService {
         // 4. Lógica de ítems
         // Buscamos un detalle que coincida en ID Y en la misma observación
         DetalleCarrito detalleExistente = carrito.getDetallesCarrito().stream()
-            .filter(d -> d.getProductoId().equals(productoId) && 
+            .filter(d -> d.getProductoId().equals(productoId) &&
                         Objects.equals(d.getObservaciones(), observaciones))
             .findFirst()
             .orElse(null);
@@ -64,9 +64,9 @@ public class CarritoService {
         } else {
             // Si el producto es igual pero la observación es distinta (o es nuevo), creamos línea nueva
             DetalleCarrito nuevoDetalle = new DetalleCarrito(
-                productoId, 
-                cantidad, 
-                BigDecimal.valueOf(productoDTO.getMontoUnitario()), 
+                productoId,
+                cantidad,
+                BigDecimal.valueOf(productoDTO.getMontoUnitario()),
                 observaciones
             );
             carrito.addDetalle(nuevoDetalle);
@@ -81,7 +81,7 @@ public class CarritoService {
         Cliente cliente = buscarClientePorEmail(email);
         return carritoRepository.findByClienteIdAndVendedorId(cliente.getId(), vendedorId)
         .map(carrito -> {
-            carrito.calcularMontosTotales(); 
+            carrito.calcularMontosTotales();
             return carritoMapper.toResponseDTO(carrito);
         })
         .orElse(CarritoResponseDTO.builder()
@@ -96,22 +96,22 @@ public class CarritoService {
     public List<CarritoResponseDTO> obtenerTodosLosCarritos(String email) {
         Cliente cliente = buscarClientePorEmail(email);
         List<Carrito> carritos = carritoRepository.findByClienteId(cliente.getId());
-        
+
         return carritos.stream().map(carrito -> {
         carrito.calcularMontosTotales();
         CarritoResponseDTO dto = carritoMapper.toResponseDTO(carrito);
-        
+
         try {
             VendedorResumidoDTO infoVendedor = catalogoService.obtenerDatosVendedor(carrito.getVendedorId());
-            
+
             dto.setNombreVendedor(infoVendedor.getNombreNegocio());
             dto.setRealizaEnvios(infoVendedor.getRealizaEnvios());
-            
+
         } catch (Exception e) {
             dto.setNombreVendedor("Local no disponible");
             dto.setRealizaEnvios(false);
         }
-        
+
         return dto;
     }).toList();
     }
@@ -119,9 +119,9 @@ public class CarritoService {
     // DELETE: Borrar uno o más ítems
     public CarritoResponseDTO eliminarItems(String email, String vendedorId, List<String> itemsIds) {
         Cliente cliente = buscarClientePorEmail(email);
-        
+
         Optional<Carrito> carritoOpt = carritoRepository.findByClienteIdAndVendedorId(cliente.getId(), vendedorId);
-        
+
         if (carritoOpt.isEmpty()) {
             return crearCarritoVacioDTO(vendedorId);
         }
@@ -170,7 +170,7 @@ public class CarritoService {
                 .orElseThrow(() -> new RequestException("PED", 404, HttpStatus.NOT_FOUND, "Carrito no encontrado"));
 
         DetalleCarrito detalle = carrito.getDetallesCarrito().stream()
-                .filter(d -> d.getProductoId().equals(request.getProductoId()) && 
+                .filter(d -> d.getProductoId().equals(request.getProductoId()) &&
                             Objects.equals(d.getObservaciones(), request.getObservaciones()))
                 .findFirst()
                 .orElseThrow(() -> new RequestException("PED", 404, HttpStatus.NOT_FOUND, "El producto no está en el carrito"));
