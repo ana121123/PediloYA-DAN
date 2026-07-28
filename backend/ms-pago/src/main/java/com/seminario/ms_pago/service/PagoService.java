@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpStatusCodeException;
 
@@ -127,6 +128,7 @@ public class PagoService {
         );
     }
 
+    //@Async("webhookExecutor")
     @Transactional
     public void procesarNotificacionPago(String paymentId) {
         try {
