@@ -1,4 +1,4 @@
-/*package com.seminario.ms_pago.config;
+package com.seminario.ms_pago.config;
 
 import java.util.concurrent.Executor;
 
@@ -21,4 +21,4 @@ public class AsyncConfig {
         executor.initialize();
         return executor;
     }
-}*/
+}

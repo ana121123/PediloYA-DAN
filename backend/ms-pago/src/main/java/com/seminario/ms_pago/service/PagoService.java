@@ -128,7 +128,7 @@ public class PagoService {
         );
     }
 
-    //@Async("webhookExecutor")
+    @Async("webhookExecutor")
     @Transactional
     public void procesarNotificacionPago(String paymentId) {
         try {
