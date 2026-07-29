@@ -426,6 +426,20 @@ services:
     networks:
       - app-network
 
+# ==================== KAFKA EXPORTER ====================
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:latest
+    container_name: kafka-exporter
+    command:
+      - "--kafka.server=kafka-broker-1:9092"
+    ports:
+      - "9308:9308"
+    depends_on:
+      kafka-broker-1:
+        condition: service_healthy
+    networks:
+      - app-network
+
 networks:
   app-network:
     driver: bridge

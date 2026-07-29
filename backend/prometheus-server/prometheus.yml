@@ -92,3 +92,9 @@ scrape_configs:
         target_label: application
       - source_labels: [__meta_eureka_app_instance_hostname]
         target_label: instance
+
+  - job_name: 'kafka-exporter'
+    static_configs:
+      - targets: ['kafka-exporter:9308']
+        labels:
+          application: 'kafka'

@@ -51,6 +51,10 @@ spring:
     # === Bootstrap Servers (puntos de entrada al cluster) ===
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
 
+    # Habilitar métricas de envío (producer) para Grafana/Prometheus
+    template:
+      observation-enabled: true
+
     # === PRODUCER CONFIGURATION ===
     # Define cómo publicar eventos a Kafka
     producer:
@@ -125,6 +129,9 @@ spring:
 
       # Concurrencia: número de threads que procesan mensajes en paralelo
       concurrency: 3
+
+      # Habilitar métricas de consumo para Grafana/Prometheus
+      observation-enabled: true
 
     # === RETRY CONFIGURATION ===
     # Configuración de reintentos en listeners
